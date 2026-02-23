@@ -14,6 +14,15 @@ export class DeleteContactUseCase {
     ) {}
 
     async execute(id: string): Promise<void> {
+        this.logger.info(`Attempting to delete contact with ID: ${id}`);
+
+        const existingContact = await this.contactRepository.findById(id);
+
+        if (!existingContact) {
+            this.logger.warn(`Contact with ID ${id} not found for deletion`);
+            throw new NotFoundError(`Contact with ID '${id}' not found`);
+        }
+
         const deleted = await this.contactRepository.delete(id);
 
         if (!deleted) {
