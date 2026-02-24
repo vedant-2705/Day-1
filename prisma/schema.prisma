@@ -5,8 +5,9 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-    provider = "prisma-client"
-    output   = "../src/generated/prisma"
+    provider        = "prisma-client"
+    output          = "../src/generated/prisma"
+    previewFeatures = ["partialIndexes"]
 }
 
 datasource db {
@@ -14,15 +15,72 @@ datasource db {
 }
 
 model Contact {
-    id        String   @id @default(uuid())
+    id        String    @id @default(uuid())
     name      String
-    email     String   @unique
+    email     String
     phone     String
     address   String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
+    createdAt DateTime  @default(now())
+    updatedAt DateTime  @updatedAt
+    deletedAt DateTime?
 
-    version   Int      @default(1)
+    version Int @default(1)
 
+    @@unique([email], name: "contact_email_key", map: "contact_email_unique_idx", where: raw("\"deletedAt\" IS NULL"))
     @@map("contacts")
+}
+
+model ContactArchive {
+    id        String   @id
+    name      String
+    email     String
+    phone     String
+    address   String
+    createdAt DateTime
+    updatedAt DateTime
+    deletedAt DateTime
+
+    version Int
+
+    archivedAt DateTime @default(now())
+
+    @@index([deletedAt])
+    @@map("contacts_archive")
+}
+
+model AuditLog {
+    id String @id @default(uuid())
+
+    // Which model was affected and which record
+    entityType String // e.g. "Contact"
+    entityId   String // e.g. the contact's uuid
+
+    // What happened
+    action AuditAction
+
+    // Snapshots - Json type stores arbitrary objects
+    oldData Json? // null for CREATE
+    newData Json? // null for DELETE
+
+    // Who did it - nullable because some operations are system-triggered
+    performedBy String? // userId or "system"
+    ipAddress   String?
+    userAgent   String?
+
+    createdAt DateTime @default(now())
+
+    // Indexes for the most common query patterns:
+    // "show me all changes to contact X" -> entityType + entityId
+    // "show me all changes today" -> createdAt
+    // "show me all deletes" -> action
+    @@index([entityType, entityId])
+    @@index([createdAt])
+    @@index([action])
+    @@map("audit_logs")
+}
+
+enum AuditAction {
+    CREATE
+    UPDATE
+    DELETE
 }

@@ -5,6 +5,12 @@ import { CreateContactDTO } from "validators/contactValidator.js";
 import { ConflictError } from "shared/errors/ConflictError.js";
 import { inject, injectable } from "tsyringe";
 
+/**
+ * Use case: Create a new contact.
+ *
+ * Enforces the uniqueness invariant on email before persisting.
+ * Throws {@link ConflictError} (409) if a contact with the same email already exists.
+ */
 @injectable()
 export class CreateContactUseCase {
     constructor(
@@ -15,7 +21,13 @@ export class CreateContactUseCase {
         private readonly logger: Logger,
     ) {}
 
+    /**
+     * @param input - Validated contact creation payload
+     * @returns The newly created contact as a DTO
+     * @throws {ConflictError} If a contact with the given email already exists
+     */
     async execute(input: CreateContactDTO): Promise<ContactDTO> {
+        // Guard: email must be unique across all contacts
         const existing = await this.contactRepository.findByEmail(input.email);
         if (existing) {
             throw new ConflictError(`A contact with email '${input.email}' already exists`);
@@ -31,4 +43,5 @@ export class CreateContactUseCase {
     }
 }
 
+/** DI injection token for {@link CreateContactUseCase}. */
 export const CREATE_CONTACT_USE_CASE = Symbol.for("CreateContactUseCase");

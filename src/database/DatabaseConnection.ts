@@ -1,63 +1,108 @@
+/**
+ * @module DatabaseConnection
+ * @description Manages the PrismaClient instance and database connectivity.
+ * Implements a singleton pattern to ensure only one PrismaClient is used across the app,
+ * preventing multiple connection pools and ensuring efficient resource usage.
+ * Provides helper methods for transactions and health checks.
+ */
+
 import "reflect-metadata";
 import { PrismaClient, Prisma } from "generated/prisma/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { inject, singleton } from "tsyringe";
 import { config } from "config/env.js";
 import { LOGGER, Logger } from "logging/Logger.js";
+import { createSoftDeleteExtension } from "./extensions/SoftDeleteExtension.js";
+import { createAuditExtension } from "./extensions/PrismaExtension.js";
 
+function buildExtendedClient(logger: Logger) {
+    const adapter = new PrismaPg({ connectionString: config.dbUrl });
+
+    const base = new PrismaClient({
+        adapter,
+        log: [
+            { level: 'query', emit: 'event' },
+            { level: 'error', emit: 'event' },
+            { level: 'warn',  emit: 'event' },
+        ],
+    });
+
+    // Forward Prisma log events to app logger
+    base.$on('query' as never, (e: Prisma.QueryEvent) => {
+        logger.debug('Database Query', {
+            query: e.query,
+            params: e.params,
+            duration: `${e.duration}ms`,
+        });
+    });
+
+    base.$on('error' as never, (e: Prisma.LogEvent) => {
+        logger.error('Database Error', e);
+    });
+
+    base.$on('warn' as never, (e: Prisma.LogEvent) => {
+        logger.warn('Database Warning', e);
+    });
+
+    // Chain extensions - ORDER MATTERS:
+    // 1. softDelete runs first -> mutates the WHERE clause on reads
+    // 2. audit runs second -> intercepts writes, uses the BASE client internally
+    //    to write audit logs (so audit writes don't trigger more audit logs)
+    return base
+        .$extends(createSoftDeleteExtension(logger))
+        .$extends(createAuditExtension(logger));
+}
+
+// This is the correct way to type an extended Prisma client in TypeScript
+// typeof lets us derive the type from the actual implementation
+export type ExtendedPrismaClient = ReturnType<typeof buildExtendedClient>;
+
+
+/**
+ * Singleton class that manages the PrismaClient instance and database lifecycle.
+ *
+ * @remarks
+ * PrismaClient is initialized lazily on first resolution to avoid connecting
+ * before the app is ready. Only one instance is created to prevent multiple
+ * connection pools. Prisma query/warn/error events are forwarded to the app Logger.
+ */
 @singleton()
 export class DatabaseConnection {
-    private static instance: PrismaClient;
-    private prisma: PrismaClient;
+    private static instance: ExtendedPrismaClient | null = null;
+    private prisma: ExtendedPrismaClient;
 
     constructor(
-        @inject(LOGGER) 
+        @inject(LOGGER)
         private readonly logger: Logger
     ) {
         this.prisma = DatabaseConnection.getInstance(logger);
     }
 
-    private static getInstance(logger: Logger): PrismaClient {
+    /**
+     * Returns the singleton instance of PrismaClient.
+     * 
+     * @param logger Logger instance for logging initialization events
+     * @returns The singleton PrismaClient instance
+     */
+    private static getInstance(logger: Logger): ExtendedPrismaClient {
         if (!DatabaseConnection.instance) {
             logger.info("Initializing Prisma Client");
 
-            const adapter = new PrismaPg({
-                connectionString: config.dbUrl,
-            })
-
-            DatabaseConnection.instance = new PrismaClient({
-                adapter,
-                log: [
-                    { level: "query", emit: "event" },
-                    { level: "error", emit: "event" },
-                    { level: "warn", emit: "event" },
-                ],
-            });
-
-            DatabaseConnection.instance.$on("query" as never, (e: Prisma.QueryEvent) => {
-                logger.debug("Database Query", {
-                    query: e.query,
-                    params: e.params,
-                    duration: `${e.duration}ms`,
-                });
-            });
-
-            DatabaseConnection.instance.$on("error" as never, (e: Prisma.LogEvent) => {
-                logger.error("Database Error", e);
-            });
-
-            DatabaseConnection.instance.$on("warn" as never, (e: Prisma.LogEvent) => {
-                logger.warn("Database Warning", e);
-            });
+            DatabaseConnection.instance = buildExtendedClient(logger);
         }
-
         return DatabaseConnection.instance;
     }
 
-    getClient(): PrismaClient {
+    /** Returns the PrismaClient instance for executing database operations. */
+    getClient(): ExtendedPrismaClient {
         return this.prisma;
     }
 
+    /**
+     * Explicitly opens the database connection.
+     * PrismaClient connects lazily by default - this ensures the connection is
+     * established and verified before the server starts accepting traffic.
+     */
     async connect(): Promise<void> {
         try {
             await this.prisma.$connect();
@@ -68,6 +113,10 @@ export class DatabaseConnection {
         }
     }
 
+    /**
+     * Gracefully closes the database connection.
+     * Should be called on SIGTERM/SIGINT to flush in-flight queries before shutdown.
+     */
     async disconnect(): Promise<void> {
         try {
             await this.prisma.$disconnect();
@@ -109,6 +158,11 @@ export class DatabaseConnection {
         }
     }
 
+    /**
+     * Verifies the database connection by running a lightweight query.
+     * Used by the `/health` endpoint.
+     * @returns `true` if the database is reachable, `false` otherwise
+     */
     async healthCheck(): Promise<boolean> {
         try {
             await this.prisma.$queryRaw`SELECT 1`;
@@ -120,4 +174,5 @@ export class DatabaseConnection {
     }
 }
 
+/** DI injection token for {@link DatabaseConnection}. */
 export const DATABASE_CONNECTION = Symbol.for("DATABASE_CONNECTION");

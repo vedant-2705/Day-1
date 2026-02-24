@@ -14,7 +14,6 @@
 - Add custom validation layer  
 - Add global config loader with environment switching
 
----
 
 ### Assignment:
 
@@ -28,3 +27,30 @@ Must include:
 5. Middleware for logging request + execution time
 6. Error classes + unified response format
 7. Controller -> service -> repo architecture (mandatory)
+
+---
+
+Day 2 REST, Error Handling, Pagination & Versioning
+ 
+Topics
+* REST conventions
+* Error handling architecture
+* Pagination strategies
+* Cursor-based paging
+* Versioning
+* Practical tips Implement cursor pagination  
+* Create error middleware with error codes
+
+### Assignment
+ 
+Extend Contact Book into “CRM Lite”:
+ 
+1. Create v1 and v2 versions 
+2. In v2, implement pagination 
+3. Add search + filter (by name, email) 
+4. Add sorting with multiple sort fields 
+5. Add audit logs (store in DB): every update/delete must log old+new data 
+6. Create a /reports/contacts-stats API:     
+   - total contacts     
+   - contacts added today     
+   - most common domain (gmail/yahoo/outlook)

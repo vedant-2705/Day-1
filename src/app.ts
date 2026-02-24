@@ -1,3 +1,16 @@
+/**
+ * @module app
+ * @description Express application entry point.
+ * Bootstraps the app in this order:
+ *   1. Registers all DI dependencies
+ *   2. Configures middleware (JSON parsing, request logging)
+ *   3. Mounts routes
+ *   4. Registers the global error handler
+ *   5. Connects to the database and starts the HTTP server
+ *
+ * Graceful shutdown is handled for SIGTERM (Docker/K8s) and SIGINT (Ctrl+C).
+ */
+
 import "reflect-metadata";
 import express, { Request, Response } from "express";
 import { config } from "config/env.js";
@@ -8,20 +21,29 @@ import { DatabaseConnection } from "database/DatabaseConnection.js";
 import { Logger } from "logging/Logger.js";
 import { registerDependencies } from "config/container.js";
 
+// Must be called before any container.resolve() or route imports that trigger DI
 registerDependencies();
 
-import contactRoutes from "routes/contactRoutes.js";
+import masterRoutes from "routes/index.js";
 
 const app = express();
 const logger = container.resolve(Logger);
 const dbConnection = container.resolve(DatabaseConnection);
 
-// Middlewares
+// --- Middleware ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(requestLogger);
 
-// Routes
+// --- Routes ---
+
+/**
+ * GET /health
+ * Returns the current health status of the application and database connection.
+ * Used by load balancers and monitoring tools.
+ * @responds 200 - App and DB are healthy
+ * @responds 503 - DB connection is down
+ */
 app.get("/health", async (_req: Request, res: Response) => {
     const dbHealthy = await dbConnection.healthCheck();
     res.status(dbHealthy ? 200 : 503).json({
@@ -33,9 +55,9 @@ app.get("/health", async (_req: Request, res: Response) => {
     });
 });
 
-app.use("/api/contacts", contactRoutes);
+app.use("/api", masterRoutes);
 
-// 404 catch-all
+// Catch-all for unmatched routes — must be registered after all valid routes
 app.use((_req: Request, res: Response) => {
     res.status(404).json({
         success: false,
@@ -43,16 +65,19 @@ app.use((_req: Request, res: Response) => {
     });
 });
 
+// Global error handler — must be the last middleware registered
 app.use(errorHandler);
 
-// Start server
+/**
+ * Connects to the database then starts the HTTP server.
+ * Exits the process with code 1 if startup fails — prevents a partially
+ * initialised server from accepting traffic.
+ */
 async function startServer() {
     try {
-        // Connect to database
         await dbConnection.connect();
         logger.info("Database connection established");
 
-        // Start listening
         app.listen(config.port, () => {
             logger.info(`Server running on port ${config.port}`, {
                 environment: config.env,
@@ -68,14 +93,14 @@ async function startServer() {
     }
 }
 
-// Signal Terminate (System, Docker, K8s)
+// Graceful shutdown: SIGTERM is sent by Docker, Kubernetes, and process managers (e.g. PM2)
 process.on("SIGTERM", async () => {
     logger.info("SIGTERM received, shutting down gracefully");
     await dbConnection.disconnect();
     process.exit(0);
 });
 
-// Signal Interrupt (Ctrl+C)
+// Graceful shutdown: SIGINT is sent when the developer presses Ctrl+C
 process.on("SIGINT", async () => {
     logger.info("SIGINT received, shutting down gracefully");
     await dbConnection.disconnect();
