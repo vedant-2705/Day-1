@@ -1,8 +1,8 @@
 import { Request, Response, NextFunction } from "express";
 import z, { ZodError } from "zod";
-import { AppError } from "@shared/errors/AppError.js";
-import { errorResponse } from "@presentation/helpers/ResponseHelper.js";
-import { ValidationError } from "@shared/errors/ValidationError.js";
+import { AppError } from "shared/errors/AppError.js";
+import { errorResponse } from "helpers/ResponseHelper.js";
+import { ValidationError } from "shared/errors/ValidationError.js";
 
 
 export function errorHandler(
@@ -12,7 +12,8 @@ export function errorHandler(
     _next: NextFunction,
 ): void {
     if (err instanceof ZodError) {
-        const details = z.treeifyError(err);
+        // const details = z.treeifyError(err);
+        const details = z.prettifyError(err);
         res.status(422).json(
             errorResponse(
                 "VALIDATION_ERROR",

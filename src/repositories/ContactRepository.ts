@@ -1,10 +1,10 @@
 import "reflect-metadata";
 import { inject, injectable } from "tsyringe";
-import { DATABASE_CONNECTION, DatabaseConnection } from "../DatabaseConnection.js";
-import { IContactRepository } from "@application/interfaces/repositories/IContactRepository.js";
-import { CreateContactDTO, UpdateContactDTO } from "@presentation/validators/contactValidator.js";
-import { ContactDTO } from "@application/dto/ContactDTO.js";
-import { CONTACT_MAPPER, type IContactMapper } from "@application/interfaces/mapper/IContactMapper.js";
+import { DATABASE_CONNECTION, DatabaseConnection } from "database/DatabaseConnection.js";
+import { IContactRepository } from "interfaces/repositories/IContactRepository.js";
+import { CreateContactDTO, UpdateContactDTO } from "validators/contactValidator.js";
+import { ContactDTO } from "dto/ContactDTO.js";
+import { CONTACT_MAPPER, type IContactMapper } from "interfaces/mapper/IContactMapper.js";
 
 @injectable()
 export class ContactRepository implements IContactRepository {

@@ -2,8 +2,8 @@ import "reflect-metadata";
 import { PrismaClient, Prisma } from "generated/prisma/client.js";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { inject, singleton } from "tsyringe";
-import { config } from "@config/env.js";
-import { LOGGER, Logger } from "@infrastructure/logging/Logger.js";
+import { config } from "config/env.js";
+import { LOGGER, Logger } from "logging/Logger.js";
 
 @singleton()
 export class DatabaseConnection {

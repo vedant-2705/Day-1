@@ -1,7 +1,7 @@
 import "reflect-metadata";
-import { ContactDTO } from "@application/dto/ContactDTO.js";
-import { IContactMapper } from "@application/interfaces/mapper/IContactMapper.js";
-import { Contact } from "@domain/entities/Contact.js";
+import { ContactDTO } from "dto/ContactDTO.js";
+import { IContactMapper } from "interfaces/mapper/IContactMapper.js";
+import { Contact } from "domain/entities/Contact.js";
 import { injectable } from "tsyringe";
 
 @injectable()

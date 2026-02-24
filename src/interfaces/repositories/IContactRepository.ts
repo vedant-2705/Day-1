@@ -1,8 +1,8 @@
-import { ContactDTO } from "@application/dto/ContactDTO.js";
+import { ContactDTO } from "dto/ContactDTO.js";
 import {
     CreateContactDTO,
     UpdateContactDTO,
-} from "@presentation/validators/contactValidator.js";
+} from "validators/contactValidator.js";
 
 export interface IContactRepository {
     findAll(): Promise<ContactDTO[]>;

@@ -1,13 +1,13 @@
 import { Router } from "express";
-import { validate } from "@presentation/middlewares/ValidationMiddleware.js";
+import { validate } from "middlewares/ValidationMiddleware.js";
 import {
     createContactSchema,
     updateContactSchema,
     uuidSchema,
-} from "@presentation/validators/contactValidator.js";
-import { asyncHandler } from "@presentation/middlewares/AsyncHandler.js";
-import { resolveController } from "@presentation/helpers/ControllerResolver.js";
-import { ContactController } from "@presentation/controllers/ContactController.js";
+} from "validators/contactValidator.js";
+import { asyncHandler } from "middlewares/AsyncHandler.js";
+import { resolveController } from "helpers/ControllerResolver.js";
+import { ContactController } from "controllers/ContactController.js";
 
 const router = Router();
 

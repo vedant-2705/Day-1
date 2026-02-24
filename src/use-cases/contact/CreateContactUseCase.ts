@@ -1,8 +1,8 @@
-import { ContactDTO } from "@application/dto/ContactDTO.js";
-import { CONTACT_REPOSITORY, type IContactRepository } from "@application/interfaces/repositories/IContactRepository.js";
-import { LOGGER, Logger } from "@infrastructure/logging/Logger.js";
-import { CreateContactDTO } from "@presentation/validators/contactValidator.js";
-import { ConflictError } from "@shared/errors/ConflictError.js";
+import { ContactDTO } from "dto/ContactDTO.js";
+import { CONTACT_REPOSITORY, type IContactRepository } from "interfaces/repositories/IContactRepository.js";
+import { LOGGER, Logger } from "logging/Logger.js";
+import { CreateContactDTO } from "validators/contactValidator.js";
+import { ConflictError } from "shared/errors/ConflictError.js";
 import { inject, injectable } from "tsyringe";
 
 @injectable()

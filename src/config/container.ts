@@ -1,17 +1,17 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { CONTACT_MAPPER } from "@application/interfaces/mapper/IContactMapper.js";
-import { CONTACT_REPOSITORY } from "@application/interfaces/repositories/IContactRepository.js";
-import { ContactMapper } from "@application/mapper/ContactMapper.js";
-import { CREATE_CONTACT_USE_CASE, CreateContactUseCase } from "@application/use-cases/contact/CreateContactUseCase.js";
-import { DELETE_CONTACT_USE_CASE, DeleteContactUseCase } from "@application/use-cases/contact/DeleteContactUseCase.js";
-import { GET_CONTACT_BY_ID_USE_CASE, GetContactByIdUseCase } from "@application/use-cases/contact/GetContactByIdUseCase.js";
-import { GET_CONTACTS_USE_CASE, GetContactsUseCase } from "@application/use-cases/contact/GetContactsUseCase.js";
-import { UPDATE_CONTACT_USE_CASE, UpdateContactUseCase } from "@application/use-cases/contact/UpdateContactUseCase.js";
-import { ContactRepository } from "@infrastructure/database/repositories/ContactRepository.js";
-import { ContactController } from "@presentation/controllers/ContactController.js";
-import { LOGGER, Logger } from "@infrastructure/logging/Logger.js";
-import { DATABASE_CONNECTION, DatabaseConnection } from "@infrastructure/database/DatabaseConnection.js";
+import { CONTACT_MAPPER } from "interfaces/mapper/IContactMapper.js";
+import { CONTACT_REPOSITORY } from "interfaces/repositories/IContactRepository.js";
+import { ContactMapper } from "mapper/ContactMapper.js";
+import { CREATE_CONTACT_USE_CASE, CreateContactUseCase } from "use-cases/contact/CreateContactUseCase.js";
+import { DELETE_CONTACT_USE_CASE, DeleteContactUseCase } from "use-cases/contact/DeleteContactUseCase.js";
+import { GET_CONTACT_BY_ID_USE_CASE, GetContactByIdUseCase } from "use-cases/contact/GetContactByIdUseCase.js";
+import { GET_CONTACTS_USE_CASE, GetContactsUseCase } from "use-cases/contact/GetContactsUseCase.js";
+import { UPDATE_CONTACT_USE_CASE, UpdateContactUseCase } from "use-cases/contact/UpdateContactUseCase.js";
+import { ContactRepository } from "repositories/ContactRepository.js";
+import { ContactController } from "controllers/ContactController.js";
+import { LOGGER, Logger } from "logging/Logger.js";
+import { DATABASE_CONNECTION, DatabaseConnection } from "database/DatabaseConnection.js";
 
 
 

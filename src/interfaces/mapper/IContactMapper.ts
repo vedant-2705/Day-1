@@ -1,4 +1,4 @@
-import { ContactDTO } from "@application/dto/ContactDTO.js";
+import { ContactDTO } from "dto/ContactDTO.js";
 import { Contact } from "generated/prisma/browser.js";
 
 export interface IContactMapper {

@@ -1,16 +1,16 @@
 import "reflect-metadata";
 import express, { Request, Response } from "express";
-import { config } from "@config/env.js";
-import { requestLogger } from "@presentation/middlewares/RequestLogger.js";
-import { errorHandler } from "@presentation/middlewares/ErrorHandler.js";
+import { config } from "config/env.js";
+import { requestLogger } from "middlewares/RequestLogger.js";
+import { errorHandler } from "middlewares/ErrorHandler.js";
 import { container } from "tsyringe";
-import { DatabaseConnection } from "@infrastructure/database/DatabaseConnection.js";
-import { Logger } from "@infrastructure/logging/Logger.js";
-import { registerDependencies } from "@config/container.js";
+import { DatabaseConnection } from "database/DatabaseConnection.js";
+import { Logger } from "logging/Logger.js";
+import { registerDependencies } from "config/container.js";
 
 registerDependencies();
 
-import contactRoutes from "@presentation/routes/contactRoutes.js";
+import contactRoutes from "routes/contactRoutes.js";
 
 const app = express();
 const logger = container.resolve(Logger);

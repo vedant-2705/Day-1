@@ -66,14 +66,6 @@
     "useDefineForClassFields": false,
 
     "baseUrl": "./src",
-    "paths": {
-      "@domain/*": ["domain/*"],
-      "@application/*": ["application/*"],
-      "@infrastructure/*": ["infrastructure/*"],
-      "@presentation/*": ["presentation/*"],
-      "@shared/*": ["shared/*"],
-      "@config/*": ["config/*"]
-    },
   },
 
   "include": ["src/**/*"],

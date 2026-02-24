@@ -1,13 +1,15 @@
 import { z } from "zod";
 
-const phoneRegex = /^[0-9]{1,10}$/;
+const phoneRegex = /^[1-9][0-9]{9}$/;
+const nameRegex = /^[a-zA-Z\s]+$/;
 
 export const createContactSchema = z.object({
     name: z
         .string({ error: "Name is required" })
         .trim()
         .min(2, "Name must be at least 2 characters")
-        .max(100, "Name must be at most 100 characters"),
+        .max(100, "Name must be at most 100 characters")
+        .regex(nameRegex, "Name can only contain letters and spaces"),
 
     email: z
         .string({ error: "Email is required" })

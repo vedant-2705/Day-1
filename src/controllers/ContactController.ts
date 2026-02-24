@@ -1,13 +1,13 @@
 import "reflect-metadata";
 import { inject, singleton } from "tsyringe";
 import { Request, Response, NextFunction } from "express";
-import { successResponse } from "@presentation/helpers/ResponseHelper.js";
-import { CreateContactDTO } from "@presentation/validators/contactValidator.js";
-import { GET_CONTACTS_USE_CASE, GetContactsUseCase } from "@application/use-cases/contact/GetContactsUseCase.js";
-import { GET_CONTACT_BY_ID_USE_CASE, GetContactByIdUseCase } from "@application/use-cases/contact/GetContactByIdUseCase.js";
-import { CREATE_CONTACT_USE_CASE, CreateContactUseCase } from "@application/use-cases/contact/CreateContactUseCase.js";
-import { UPDATE_CONTACT_USE_CASE, UpdateContactUseCase } from "@application/use-cases/contact/UpdateContactUseCase.js";
-import { DELETE_CONTACT_USE_CASE, DeleteContactUseCase } from "@application/use-cases/contact/DeleteContactUseCase.js";
+import { successResponse } from "helpers/ResponseHelper.js";
+import { CreateContactDTO } from "validators/contactValidator.js";
+import { GET_CONTACTS_USE_CASE, GetContactsUseCase } from "use-cases/contact/GetContactsUseCase.js";
+import { GET_CONTACT_BY_ID_USE_CASE, GetContactByIdUseCase } from "use-cases/contact/GetContactByIdUseCase.js";
+import { CREATE_CONTACT_USE_CASE, CreateContactUseCase } from "use-cases/contact/CreateContactUseCase.js";
+import { UPDATE_CONTACT_USE_CASE, UpdateContactUseCase } from "use-cases/contact/UpdateContactUseCase.js";
+import { DELETE_CONTACT_USE_CASE, DeleteContactUseCase } from "use-cases/contact/DeleteContactUseCase.js";
 
 
 @singleton()

@@ -1,6 +1,6 @@
-import { CONTACT_REPOSITORY, type IContactRepository } from "@application/interfaces/repositories/IContactRepository.js";
-import { LOGGER, Logger } from "@infrastructure/logging/Logger.js";
-import { NotFoundError } from "@shared/errors/NotFoundError.js";
+import { CONTACT_REPOSITORY, type IContactRepository } from "interfaces/repositories/IContactRepository.js";
+import { LOGGER, Logger } from "logging/Logger.js";
+import { NotFoundError } from "shared/errors/NotFoundError.js";
 import { inject, injectable } from "tsyringe";
 
 @injectable()
