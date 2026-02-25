@@ -19,6 +19,10 @@ import { ContactRepository } from "repositories/ContactRepository.js";
 import { ContactControllerV1 } from "controllers/v1/ContactController.js";
 import { LOGGER, Logger } from "logging/Logger.js";
 import { DATABASE_CONNECTION, DatabaseConnection } from "database/DatabaseConnection.js";
+import { ContactControllerV2 } from "controllers/v2/ContactController.js";
+import { ReportController } from "controllers/shared/ReportController.js";
+import { GET_CONTACT_REPORT_USE_CASE, GetContactReportUseCase } from "use-cases/reports/GetContactReportUseCase.js";
+import { GET_CONTACT_HISTORY_USE_CASE, GetContactHistoryUseCase } from "use-cases/contact/GetContactHistoryUseCase.js";
 
 /**
  * Registers all application dependencies into the tsyringe DI container.
@@ -53,9 +57,12 @@ export function registerDependencies() {
     container.register(CREATE_CONTACT_USE_CASE, { useClass: CreateContactUseCase });
     container.register(UPDATE_CONTACT_USE_CASE, { useClass: UpdateContactUseCase });
     container.register(DELETE_CONTACT_USE_CASE, { useClass: DeleteContactUseCase });
+    container.register(GET_CONTACT_HISTORY_USE_CASE, { useClass: GetContactHistoryUseCase });
+    container.register(GET_CONTACT_REPORT_USE_CASE, { useClass: GetContactReportUseCase });
 
     // --- Controllers (Singleton) ---
     // Singleton: controllers are stateless and wired once at startup
     container.registerSingleton<ContactControllerV1>(ContactControllerV1);
-    // container.registerSingleton<ContactControllerV2>(ContactControllerV2);
+    container.registerSingleton<ContactControllerV2>(ContactControllerV2);
+    container.registerSingleton<ReportController>(ReportController);
 }

@@ -43,11 +43,7 @@ function buildExtendedClient(logger: Logger) {
     base.$on('warn' as never, (e: Prisma.LogEvent) => {
         logger.warn('Database Warning', e);
     });
-
-    // Chain extensions - ORDER MATTERS:
-    // 1. softDelete runs first -> mutates the WHERE clause on reads
-    // 2. audit runs second -> intercepts writes, uses the BASE client internally
-    //    to write audit logs (so audit writes don't trigger more audit logs)
+    
     return base
         .$extends(createSoftDeleteExtension(logger))
         .$extends(createAuditExtension(logger));

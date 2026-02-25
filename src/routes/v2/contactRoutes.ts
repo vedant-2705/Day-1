@@ -26,8 +26,8 @@ const router = Router();
 const controller = resolveController(ContactControllerV2);
 
 /**
- * - GET /contacts — list all 
- * - POST /contacts — create new (requires valid body)
+ * - GET /contacts - list all 
+ * - POST /contacts - create new (requires valid body)
  */
 router
     .route("/")
@@ -38,9 +38,9 @@ router
     );
 
 /**
- * - GET /contacts/:id — get by id (requires valid UUID in params)
- * - PATCH /contacts/:id — update by id (requires valid UUID in params + body)
- * - DELETE /contacts/:id — delete by id (requires valid UUID in params)
+ * - GET /contacts/:id - get by id (requires valid UUID in params)
+ * - PATCH /contacts/:id - update by id (requires valid UUID in params + body)
+ * - DELETE /contacts/:id - delete by id (requires valid UUID in params)
  */
 router
     .route("/:id")
@@ -56,6 +56,12 @@ router
     .delete(
         validate(uuidSchema, "params"), 
         asyncHandler((req, res, next) => controller().delete(req, res, next))
+    );
+
+router.route("/:id/history")
+    .get(
+        validate(uuidSchema, "params"),
+        asyncHandler((req, res, next) => controller().getHistory(req, res, next)),
     );
 
 export { router as contactRoutesV2 };
