@@ -1,5 +1,5 @@
-import { StatusCodes } from "http-status-codes";
 import { AppError } from "./AppError.js";
+import { ErrorCode } from "constants/ErrorCodes.js";
 
 /**
  * Thrown when a request conflicts with the current state of a resource.
@@ -10,7 +10,7 @@ import { AppError } from "./AppError.js";
  * throw new ConflictError("A contact with this email already exists");
  */
 export class ConflictError extends AppError {
-    constructor(message: string, details?: any) {
-        super(message, StatusCodes.CONFLICT, "CONFLICT", details);
+    constructor(errorCode: ErrorCode = 'CONFLICT', params: Record<string, string> = {}) {
+        super(errorCode, params);
     }
 }

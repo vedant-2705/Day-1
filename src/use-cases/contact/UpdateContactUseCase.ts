@@ -42,7 +42,7 @@ export class UpdateContactUseCase {
 
             // Allow the same contact to keep its own email (existing.id === id)
             if (existing && existing.id !== id) {
-                throw new ConflictError(`A contact with email '${input.email}' already exists`);
+                throw new ConflictError(`CONTACT_EMAIL_CONFLICT`, { email: input.email as string });
             }
         }
 
@@ -50,7 +50,7 @@ export class UpdateContactUseCase {
 
         if (!updated) {
             this.logger.warn(`Contact with ID ${id} not found for update`);
-            throw new NotFoundError(`Contact with ID '${id}' not found`);
+            throw new NotFoundError(`CONTACT_NOT_FOUND`, { id });
         }
 
         this.logger.info(`Contact updated with ID: ${updated.id}`);

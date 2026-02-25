@@ -48,7 +48,7 @@ export class ContactRepository implements IContactRepository {
      * @returns The contact DTO if found, otherwise null
      */
     async findByEmail(email: string): Promise<ContactDTO | null> {
-        const contact = await this.prisma.contact.findUnique({
+        const contact = await this.prisma.contact.findFirst({
             where: {
                 email,
             },
@@ -65,7 +65,7 @@ export class ContactRepository implements IContactRepository {
      * @returns The contact DTO if found, otherwise null
      */
     async findById(id: string): Promise<ContactDTO | null> {
-        const contact = await this.prisma.contact.findUnique({
+        const contact = await this.prisma.contact.findFirst({
             where: {
                 id,
             },

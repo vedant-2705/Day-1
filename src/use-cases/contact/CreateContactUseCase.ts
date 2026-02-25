@@ -30,7 +30,7 @@ export class CreateContactUseCase {
         // Guard: email must be unique across all contacts
         const existing = await this.contactRepository.findByEmail(input.email);
         if (existing) {
-            throw new ConflictError(`A contact with email '${input.email}' already exists`);
+            throw new ConflictError(`CONTACT_EMAIL_CONFLICT`, { email: input.email });
         }
 
         this.logger.info(`Creating contact with email: ${input.email}`);

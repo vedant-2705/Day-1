@@ -9,45 +9,38 @@
  * structured responses instead of generic 500s.
  */
 
+import { ERROR_CODES, ErrorCode, formatMessage } from "constants/ErrorCodes.js";
+
 /**
  * Base application error. Extend this class for domain-specific error types.
  *
  * @example
  * throw new AppError("Something went wrong", 500, "INTERNAL_ERROR");
  */
+
 export class AppError extends Error {
+    public readonly statusCode: number;
+    public readonly code: string;
+    public readonly title: string;
+    public readonly isOperational: boolean;
+    public readonly details?: unknown;
+
     constructor(
-        public readonly message: string,
-
-        /** HTTP status code to send in the response. Defaults to 500. */
-        public readonly statusCode: number = 500,
-
-        /** Machine-readable error code for client-side error handling (e.g. "NOT_FOUND"). */
-        public readonly errorCode?: string,
-
-        /** Additional context or validation details to include in the error response. */
-        public readonly details?: any,
+        errorCode: ErrorCode,
+        params: Record<string, string> = {},
+        details?: unknown,
+        isOperational = true,
     ) {
-        super(message);
-        this.name = this.constructor.name;
-        
-        // Removes the AppError constructor from the stack trace for cleaner diagnostics
-        Error.captureStackTrace(this, this.constructor);
-    }
+        const definition = ERROR_CODES[errorCode];
+        super(formatMessage(definition.message, params));
 
-    /**
-     * Serializes the error into a structured JSON shape.
-     * Used by the global error middleware to build consistent API error responses.
-     */
-    toJSON() {
-        return {
-            error: {
-                name: this.name,
-                message: this.message,
-                statusCode: this.statusCode,
-                errorCode: this.errorCode,
-                details: this.details,
-            },
-        };
+        this.code = definition.code;
+        this.statusCode = definition.statusCode;
+        this.title = definition.title;
+        this.isOperational = isOperational;
+        this.details = details;
+
+        Error.captureStackTrace(this, this.constructor);
+        Object.setPrototypeOf(this, new.target.prototype);
     }
 }

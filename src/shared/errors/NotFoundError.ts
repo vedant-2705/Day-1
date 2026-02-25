@@ -1,5 +1,6 @@
 import { StatusCodes } from "http-status-codes";
 import { AppError } from "./AppError.js";
+import { ErrorCode } from "constants/ErrorCodes.js";
 
 /**
  * Thrown when a requested resource cannot be found.
@@ -15,14 +16,11 @@ import { AppError } from "./AppError.js";
 export class NotFoundError extends AppError {
     constructor(
         /** The name of the resource that was not found (e.g. "Contact"). */
-        resource: string,
+        errorCode: ErrorCode = "NOT_FOUND",
         
         /** The identifier used in the lookup (e.g. a UUID). */
-        identifier?: string,
+        params: Record<string, string> = {},
     ) {
-        const message = identifier
-            ? `${resource} with identifier '${identifier}' not found`
-            : `${resource} not found`;
-        super(message, StatusCodes.NOT_FOUND, "NOT_FOUND");
+        super(errorCode, params);
     }
 }

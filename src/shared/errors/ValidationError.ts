@@ -1,4 +1,3 @@
-import { StatusCodes } from "http-status-codes";
 import { AppError } from "./AppError.js";
 
 /**
@@ -12,12 +11,10 @@ import { AppError } from "./AppError.js";
  * throw new ValidationError("Invalid request body", zodError.issues);
  */
 export class ValidationError extends AppError {
-    constructor(
-        message: string,
-        
+    constructor(        
         /** Structured validation issues (e.g. Zod error details) to return in the response. */
-        details?: any,
+        details?: unknown,
     ) {
-        super(message, StatusCodes.BAD_REQUEST, "VALIDATION_ERROR", details);
+        super("VALIDATION_FAILED", {}, details);
     }
 }

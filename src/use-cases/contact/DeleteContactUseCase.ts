@@ -31,7 +31,7 @@ export class DeleteContactUseCase {
 
         if (!existingContact) {
             this.logger.warn(`Contact with ID ${id} not found for deletion`);
-            throw new NotFoundError(`Contact with ID '${id}' not found`);
+            throw new NotFoundError(`CONTACT_NOT_FOUND`, { id });
         }
 
         const deleted = await this.contactRepository.delete(id);
@@ -39,7 +39,7 @@ export class DeleteContactUseCase {
         // Secondary guard: handles race conditions where the record was removed between checks
         if (!deleted) {
             this.logger.warn(`Contact with ID ${id} not found for deletion`);
-            throw new NotFoundError(`Contact with ID '${id}' not found`);
+            throw new NotFoundError(`CONTACT_NOT_FOUND`, { id });
         }
         this.logger.info(`Contact deleted with ID: ${id}`);
     }

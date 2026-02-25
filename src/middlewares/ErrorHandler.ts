@@ -26,33 +26,40 @@ import { Prisma } from "generated/prisma/client.js";
  * all four parameters are required even if unused, otherwise Express won't treat it as an error handler.
  *
  * @param err  - The error passed to `next(err)`
- * @param _req - Unused; required by Express error middleware signature
+ * @param req  - Request object (used for logging and path info)
  * @param res  - Response object used to send the error payload
  * @param _next - Unused; required by Express error middleware signature
  */
 export function errorHandler(
     err: Error,
-    _req: Request,
+    req: Request,
     res: Response,
     _next: NextFunction,
 ): void {
     if (err instanceof ZodError) {
-        handleZodError(err, res);
+        handleZodError(err, req, res);
         return;
     }
 
     if (err instanceof AppError) {
-        handleAppError(err, res);
+        handleAppError(err, req, res);
         return;
     }
 
     if (err instanceof Prisma.PrismaClientKnownRequestError) {
-        handlePrismaError(err, res);
+        handlePrismaError(err, req, res);
         return;
     }
-    
+
     console.error("[Unhandled Error]", err);
     res.status(StatusCodes.INTERNAL_SERVER_ERROR).json(
-        errorResponse("INTERNAL_SERVER_ERROR", "An unexpected error occurred"),
+        errorResponse(
+            "INTERNAL_SERVER_ERROR",
+            process.env.NODE_ENV === "production"
+                ? "An unexpected error occurred"
+                : err.message,
+            undefined,
+            req.path,
+        ),
     );
 }

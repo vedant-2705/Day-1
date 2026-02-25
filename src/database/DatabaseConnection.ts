@@ -57,6 +57,10 @@ function buildExtendedClient(logger: Logger) {
 // typeof lets us derive the type from the actual implementation
 export type ExtendedPrismaClient = ReturnType<typeof buildExtendedClient>;
 
+// Derive the transaction client type directly from ExtendedPrismaClient's $transaction overload.
+// Parameters<$transaction>[0] is the callback fn; Parameters of that fn gives us the client.
+export type ExtendedTransactionClient = Parameters<Parameters<ExtendedPrismaClient['$transaction']>[0]>[0];
+
 
 /**
  * Singleton class that manages the PrismaClient instance and database lifecycle.
@@ -132,7 +136,7 @@ export class DatabaseConnection {
      * Auto-commits on success, auto-rolls back on error.
      */
     async transaction<T>(
-        callback: (tx: Prisma.TransactionClient) => Promise<T>,
+        callback: (tx: ExtendedTransactionClient) => Promise<T>,
         options?: {
             maxWait?: number;
             timeout?: number;
