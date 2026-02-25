@@ -20,13 +20,27 @@ model Contact {
     email     String
     phone     String
     address   String
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    deletedAt DateTime?
+    createdAt DateTime  @default(now()) @map("created_at")
+    updatedAt DateTime  @updatedAt      @map("updated_at")
+    deletedAt DateTime?                 @map("deleted_at")
 
     version Int @default(1)
 
-    @@unique([email], name: "contact_email_key", map: "contact_email_unique_idx", where: raw("\"deletedAt\" IS NULL"))
+    @@unique([email], name: "contact_email_key", map: "contact_email_unique_idx", where: raw("\"deleted_at\" IS NULL"))
+
+    // For soft delete filtering — almost every query filters on this
+    @@index([deletedAt], name: "contact_deleted_at_idx")
+
+    // For cursor pagination default sort (createdAt DESC, id DESC)
+    // Composite index — both fields together, matches the ORDER BY exactly
+    @@index([createdAt(sort: Desc), id(sort: Desc)], name: "contact_created_at_id_idx")
+
+    // For search and sort on name
+    @@index([name], name: "contact_name_idx")
+
+    // For search and sort on email
+    @@index([email], name: "contact_email_idx")
+
     @@map("contacts")
 }
 
@@ -36,15 +50,15 @@ model ContactArchive {
     email     String
     phone     String
     address   String
-    createdAt DateTime
-    updatedAt DateTime
-    deletedAt DateTime
+    createdAt DateTime @map("created_at")
+    updatedAt DateTime @map("updated_at")
+    deletedAt DateTime @map("deleted_at")
 
     version Int
 
-    archivedAt DateTime @default(now())
+    archivedAt DateTime @default(now()) @map("archived_at")
 
-    @@index([deletedAt])
+    @@index([deletedAt], name: "contact_archive_deleted_at_idx")
     @@map("contacts_archive")
 }
 
@@ -52,30 +66,32 @@ model AuditLog {
     id String @id @default(uuid())
 
     // Which model was affected and which record
-    entityType String // e.g. "Contact"
-    entityId   String // e.g. the contact's uuid
+    entityType String @map("entity_type")// e.g. "Contact" 
+    entityId   String @map("entity_id") // e.g. the contact's uuid
 
     // What happened
     action AuditAction
 
     // Snapshots - Json type stores arbitrary objects
-    oldData Json? // null for CREATE
-    newData Json? // null for DELETE
+    oldData Json? @map("old_data")// null for CREATE
+    newData Json? @map("new_data") // null for DELETE
 
     // Who did it - nullable because some operations are system-triggered
-    performedBy String? // userId or "system"
-    ipAddress   String?
-    userAgent   String?
+    performedBy String? @map("performed_by") // userId or "system"
+    ipAddress   String? @map("ip_address")
+    userAgent   String? @map("user_agent")
 
-    createdAt DateTime @default(now())
+    createdAt DateTime @default(now())  @map("created_at")
 
-    // Indexes for the most common query patterns:
-    // "show me all changes to contact X" -> entityType + entityId
-    // "show me all changes today" -> createdAt
-    // "show me all deletes" -> action
-    @@index([entityType, entityId])
-    @@index([createdAt])
-    @@index([action])
+    // "Show all changes to contact X" — most common audit query
+    @@index([entityType, entityId], name: "audit_log_entity_type_entity_id_idx")
+
+    // "Show all changes today" — used by reports
+    @@index([createdAt], name: "audit_log_created_at_idx")
+
+    // "Show all deletes" — used by compliance queries
+    @@index([action], name: "audit_log_action_idx")
+
     @@map("audit_logs")
 }
 

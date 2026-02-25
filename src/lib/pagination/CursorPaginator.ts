@@ -161,6 +161,23 @@ export class CursorPaginator {
         return { where: cursorWhere, orderBy, take: limit + 1 };
     }
 
+    /**
+     * Builds a Prisma-compatible keyset WHERE clause from an ordered list of sort fields and a cursor.
+     *
+     * For a composite sort of N fields, the pagination condition is expressed as a disjunction
+     * of conjunctions (OR of ANDs). Each OR clause handles a different "tier" of the sort:
+     *
+     *   - Tier 0: field[0] has advanced past its cursor value.
+     *   - Tier 1: field[0] equals its cursor value AND field[1] has advanced past its cursor value.
+     *   - Tier i: fields[0..i-1] equal their cursor values AND field[i] has advanced past its cursor value.
+     *
+     * This correctly handles ties at any level of the composite sort without skipping or
+     * duplicating rows, and works for both ascending and descending directions.
+     *
+     * @param sorts  The effective sort fields (including the `id` tiebreaker) in query order.
+     * @param cursor The decoded cursor payload containing the keyset values of the last seen row.
+     * @returns A Prisma-compatible `where` object (OR/AND tree) ready to spread into `findMany`.
+     */
     private static buildKeysetWhere(
         sorts: SortField[],
         cursor: CursorPayload,
@@ -197,7 +214,17 @@ export class CursorPaginator {
             : { OR: orClauses };
     }
 
-    // Cursor stores all values as strings - convert Date fields back to Date objects
+    /**
+     * Parses a raw cursor field value into the appropriate runtime type for Prisma comparison.
+     *
+     * Cursor tokens are JSON-serialised, so all values are stored as strings. Date fields
+     * must be converted back to `Date` objects before being used in a Prisma `where` clause;
+     * otherwise Prisma will perform a string comparison instead of a temporal one.
+     *
+     * @param field The field name as it appears in the Prisma model.
+     * @param value The raw string value extracted from the decoded cursor payload.
+     * @returns A `Date` instance for known date fields, or the original string for all others.
+     */
     private static parseValue(field: string, value: string): unknown {
         const dateFields = ['createdAt', 'updatedAt', 'deletedAt'];
         return dateFields.includes(field) ? new Date(value) : value;
@@ -205,9 +232,21 @@ export class CursorPaginator {
 
 
     /**
-     * Builds an opaque cursor token from a result row's keyset fields.
-     * @param row An object containing at minimum `id` and `createdAt`.
-     * @returns A base64url cursor token representing the row's position in the result set.
+     * Builds an opaque base64url cursor token from a result row's keyset fields.
+     *
+     * Extracts the `id` and every sort field from the given row, serialises Date values
+     * to ISO 8601 strings (so the JSON-encoded cursor is portable), and encodes the
+     * resulting {@link CursorPayload} via {@link encode}.
+     *
+     * The `id` field is always included as the tiebreaker regardless of the sort
+     * configuration. Fields named `id` in the `sort` array are skipped to avoid
+     * duplicate entries in the payload.
+     *
+     * @param row  A result row returned by Prisma, containing at minimum `id` plus
+     *             every field present in `sort`.
+     * @param sort The base sort fields (excluding the implicit `id` tiebreaker) used
+     *             to determine which additional fields to capture in the cursor.
+     * @returns A base64url cursor token representing this row's position in the result set.
      */
     static buildCursorFromRow(
         row: Record<string, unknown>,
