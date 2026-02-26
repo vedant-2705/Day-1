@@ -39,10 +39,12 @@ export class GetContactsUseCase {
      *
      * @returns Array of all {@link ContactDTO} objects; empty array if no contacts exist.
      */
-    async execute(): Promise<ContactDTO[]> {
+    async execute(authUser: AuthUser): Promise<ContactDTO[]> {
         this.logger.info("Fetching all contacts from repository");
 
-        const contacts = await this.contactRepository.findAll();
+        const ownerFilter = this.buildOwnerFilter(authUser);
+
+        const contacts = await this.contactRepository.findAll(ownerFilter);
 
         this.logger.info(`Retrieved ${contacts.length} contacts`);
 

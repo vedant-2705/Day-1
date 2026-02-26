@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import { UserRole } from "generated/prisma/client.js";
 import { AuthenticatedRequest } from "./AuthMiddleware.js";
 import { ForbiddenError } from "shared/errors/ForbiddenError.js";
-import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 
 /**
  * Factory function that returns a middleware enforcing role-based access.
@@ -25,11 +25,11 @@ export function requireRole(...roles: UserRole[]) {
 
         // should never happen if authMiddleware ran first
         if (!authReq.user) {
-            throw new ForbiddenError(ERROR_CODES.INSUFFICIENT_PERMISSIONS.code);
+            return next(new ForbiddenError(ErrorKeys.INSUFFICIENT_PERMISSIONS));
         }
 
         if (!roles.includes(authReq.user.role)) {
-            throw new ForbiddenError(ERROR_CODES.INSUFFICIENT_PERMISSIONS.code);
+            return next(new ForbiddenError(ErrorKeys.INSUFFICIENT_PERMISSIONS));
         }
 
         next();

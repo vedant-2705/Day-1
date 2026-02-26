@@ -20,6 +20,8 @@ import {
 import { asyncHandler } from "middlewares/AsyncHandler.js";
 import { resolveController } from "helpers/ControllerResolver.js";
 import { ContactControllerV2 } from "controllers/v2/ContactController.js";
+import { requireRole } from "middlewares/RoleMiddleware.js";
+import { UserRole } from "generated/prisma/enums.js";
 
 const router = Router();
 
@@ -61,6 +63,7 @@ router
 router.route("/:id/history")
     .get(
         validate(uuidSchema, "params"),
+        requireRole(UserRole.ADMIN),
         asyncHandler((req, res, next) => controller().getHistory(req, res, next)),
     );
 

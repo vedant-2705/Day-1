@@ -6,7 +6,7 @@ import { ConflictError } from "shared/errors/ConflictError.js";
 import { NotFoundError } from "shared/errors/NotFoundError.js";
 import { inject, injectable } from "tsyringe";
 import { AuthUser } from "middlewares/AuthMiddleware.js";
-import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 import { UserRole } from "domain/enum/UserRole.js";
 
 /**
@@ -45,7 +45,7 @@ export class UpdateContactUseCase {
 
             // Allow the same contact to keep its own email (existing.id === id)
             if (existing && existing.id !== id) {
-                throw new ConflictError(`CONTACT_EMAIL_CONFLICT`, { email: input.email as string });
+                throw new ConflictError(ErrorKeys.CONTACT_EMAIL_CONFLICT, { email: input.email as string });
             }
         }
 
@@ -53,7 +53,7 @@ export class UpdateContactUseCase {
 
         if (!contact) {
             this.logger.warn(`Contact with ID ${id} not found for update`);
-            throw new NotFoundError(`CONTACT_NOT_FOUND`, { id });
+            throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
 
         if(
@@ -61,7 +61,7 @@ export class UpdateContactUseCase {
             contact.createdBy !== authUser.userId
         ) {
             this.logger.warn(`User ${authUser.userId} attempted to access contact ${id} owned by ${contact.createdBy}`);
-            throw new NotFoundError(ERROR_CODES.CONTACT_NOT_FOUND.code, { id });
+            throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
         
 
@@ -69,7 +69,7 @@ export class UpdateContactUseCase {
 
         if (!updated) {
             this.logger.warn(`Contact with ID ${id} not found for update`);
-            throw new NotFoundError(`CONTACT_NOT_FOUND`, { id });
+            throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
 
         this.logger.info(`Contact updated with ID: ${updated.id}`);

@@ -3,7 +3,7 @@ import { inject, injectable } from "tsyringe";
 import { type IUserRepository, USER_REPOSITORY } from "interfaces/repositories/IUserRepository.js";
 import { UserDTO } from "dto/UserDTO.js";
 import { NotFoundError } from "shared/errors/NotFoundError.js";
-import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 
 @injectable()
 export class GetMeUseCase {
@@ -20,7 +20,7 @@ export class GetMeUseCase {
         const user = await this.userRepo.findById(userId);
 
         if (!user) {
-            throw new NotFoundError(ERROR_CODES.USER_NOT_FOUND.code);
+            throw new NotFoundError(ErrorKeys.USER_NOT_FOUND);
         }
 
         return user;

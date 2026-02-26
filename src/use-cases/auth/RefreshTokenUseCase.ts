@@ -3,9 +3,9 @@ import { inject, injectable } from "tsyringe";
 import { USER_REPOSITORY, type IUserRepository } from "../../interfaces/repositories/IUserRepository.js";
 import { REFRESH_TOKEN_REPOSITORY, type IRefreshTokenRepository } from "../../interfaces/repositories/IRefreshTokenRepository.js";
 import { HashService } from "../../lib/crypto/HashService.js";
-import { JwtService } from "../../lib/jwt/JwtService.js";
+import { JWT_SERVICE, JwtService } from "../../lib/jwt/JwtService.js";
 import { RequestContext, TokenPair } from "types/auth/index.js";
-import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 import { UnauthorizedError } from "shared/errors/UnauthorizedError.js";
 @injectable()
 export class RefreshTokenUseCase {
@@ -16,7 +16,7 @@ export class RefreshTokenUseCase {
         @inject(REFRESH_TOKEN_REPOSITORY)
         private readonly refreshTokenRepo: IRefreshTokenRepository,
 
-        @inject(JwtService)
+        @inject(JWT_SERVICE)
         private readonly jwtService: JwtService,
     ) {}
 
@@ -32,7 +32,7 @@ export class RefreshTokenUseCase {
 
         // Token not found at all - invalid or tampered
         if (!storedToken) {
-            throw new UnauthorizedError(ERROR_CODES.INVALID_TOKEN.code);
+            throw new UnauthorizedError(ErrorKeys.INVALID_TOKEN);
         }
 
         // REUSE DETECTION - token was already revoked
@@ -42,13 +42,13 @@ export class RefreshTokenUseCase {
         // Either way - nuke ALL sessions for this user immediately
         if (storedToken.revokedAt !== null) {
             await this.refreshTokenRepo.revokeAllByUserId(storedToken.userId);
-            throw new UnauthorizedError(ERROR_CODES.TOKEN_REUSE_DETECTED.code);
+            throw new UnauthorizedError(ErrorKeys.TOKEN_REUSE_DETECTED);
         }
 
         // Token expired - normal flow, ask user to log in again
         if (storedToken.expiresAt < new Date()) {
             await this.refreshTokenRepo.revokeByTokenHash(tokenHash);
-            throw new UnauthorizedError(ERROR_CODES.INVALID_TOKEN.code);
+            throw new UnauthorizedError(ErrorKeys.INVALID_TOKEN);
         }
 
         // Fetch user - verify they still exist and are active
@@ -56,7 +56,7 @@ export class RefreshTokenUseCase {
         if (!user) {
             // User was deleted after token was issued
             await this.refreshTokenRepo.revokeAllByUserId(storedToken.userId);
-            throw new UnauthorizedError(ERROR_CODES.INVALID_TOKEN.code);
+            throw new UnauthorizedError(ErrorKeys.INVALID_TOKEN);
         }
 
         // ROTATION - revoke the used token, issue a fresh one

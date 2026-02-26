@@ -45,7 +45,7 @@ export class CursorPaginator {
         try {
             const json = Buffer.from(cursor, "base64url").toString("utf-8");
             const parsed = JSON.parse(json);
-            if (!parsed.id || !parsed.createdAt)
+            if (!parsed.id)
                 throw new Error("Invalid shape");
             return parsed as CursorPayload;
         } catch {

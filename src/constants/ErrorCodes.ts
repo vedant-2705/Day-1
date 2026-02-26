@@ -175,5 +175,32 @@ export function formatMessage(
     );
 }
 
+export const ErrorKeys = {
+    // Generic
+    INTERNAL_SERVER_ERROR:    'INTERNAL_SERVER_ERROR',
+    VALIDATION_FAILED:        'VALIDATION_FAILED',
+    NOT_FOUND:                'NOT_FOUND',
+    CONFLICT:                 'CONFLICT',
+    BAD_REQUEST:              'BAD_REQUEST',
+    UNAUTHORIZED:             'UNAUTHORIZED',
+    FORBIDDEN:                'FORBIDDEN',
+
+    // Pagination & versioning
+    UNSUPPORTED_VERSION:      'UNSUPPORTED_VERSION',
+    INVALID_CURSOR:           'INVALID_CURSOR',
+
+    // Contact domain
+    CONTACT_NOT_FOUND:        'CONTACT_NOT_FOUND',
+    CONTACT_EMAIL_CONFLICT:   'CONTACT_EMAIL_CONFLICT',
+
+    // User domain
+    USER_EMAIL_TAKEN:         'USER_EMAIL_TAKEN',
+    USER_NOT_FOUND:           'USER_NOT_FOUND',
+    INVALID_CREDENTIALS:      'INVALID_CREDENTIALS',
+    INVALID_TOKEN:            'INVALID_TOKEN',
+    TOKEN_REUSE_DETECTED:     'TOKEN_REUSE_DETECTED',
+    INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
+} as const satisfies Record<ErrorCode, string>; 
+
 /** Union type of all valid error code keys, derived directly from {@link ERROR_CODES}. */
 export type ErrorCode = keyof typeof ERROR_CODES;

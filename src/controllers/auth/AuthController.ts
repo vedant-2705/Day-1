@@ -15,8 +15,9 @@ import {
 import { UnauthorizedError } from "shared/errors/UnauthorizedError.js";
 import { LOGOUT_USE_CASE, LogoutUseCase } from "use-cases/auth/LogOutUseCase.js";
 import { LOGOUT_ALL_USE_CASE, LogoutAllUseCase } from "use-cases/auth/LogOutAllUseCase.js";
-import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 import { AuthenticatedRequest } from "middlewares/AuthMiddleware.js";
+import { StatusCodes } from "http-status-codes";
 
 @injectable()
 export class AuthController {
@@ -59,10 +60,9 @@ export class AuthController {
 
         this.setRefreshCookie(res, refreshToken);
 
-        res.status(201).json(
+        res.status(StatusCodes.CREATED).json(
             successResponse(
                 { user, accessToken },
-                "Account created successfully",
             ),
         );
     }
@@ -83,8 +83,8 @@ export class AuthController {
 
         this.setRefreshCookie(res, refreshToken);
 
-        res.status(200).json(
-            successResponse({ user, accessToken }, "Logged in successfully"),
+        res.status(StatusCodes.OK).json(
+            successResponse({ user, accessToken }),
         );
     }
 
@@ -102,7 +102,7 @@ export class AuthController {
             | undefined;
 
         if (!rawToken) {
-            throw new UnauthorizedError(ERROR_CODES.INVALID_TOKEN.code);
+            throw new UnauthorizedError(ErrorKeys.INVALID_TOKEN);
         }
 
         const ctx = this.extractRequestContext(req);
@@ -113,8 +113,8 @@ export class AuthController {
         // Rotate cookie — old cookie replaced with new token
         this.setRefreshCookie(res, refreshToken);
 
-        res.status(200).json(
-            successResponse({ accessToken }, "Token refreshed successfully"),
+        res.status(StatusCodes.OK).json(
+            successResponse({ accessToken }),
         );
     }
 
@@ -137,7 +137,7 @@ export class AuthController {
 
         this.clearRefreshCookie(res);
 
-        res.status(200).json(successResponse(null, "Logged out successfully"));
+        res.status(StatusCodes.OK).json(successResponse(null));
     }
 
     // POST /api/auth/logout-all
@@ -155,19 +155,19 @@ export class AuthController {
 
         this.clearRefreshCookie(res);
 
-        res.status(200).json(
-            successResponse(null, "Logged out from all devices successfully"),
+        res.status(StatusCodes.OK).json(
+            successResponse(null),
         );
     }
 
-    // GET /api/auth/me─
+    // GET /api/auth/me
 
     async me(req: Request, res: Response, next: NextFunction): Promise<void> {
         const authReq = req as AuthenticatedRequest;
 
         const user = await this.getMeUseCase.execute(authReq.user.userId);
 
-        res.status(200).json(successResponse({ user }));
+        res.status(StatusCodes.OK).json(successResponse({ user }));
     }
 
     // Private helpers

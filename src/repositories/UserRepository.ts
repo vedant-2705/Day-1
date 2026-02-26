@@ -14,6 +14,7 @@ import { CreateUserDTO, UserDTO } from "dto/UserDTO.js";
 import { User } from "domain/entities/User.js";
 import { ConflictError } from "shared/errors/ConflictError.js";
 import { DbErrorCodes } from "constants/DbErrorCodes.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 
 @singleton()
 export class UserRepository implements IUserRepository {
@@ -73,7 +74,7 @@ export class UserRepository implements IUserRepository {
                 "code" in error &&
                 (error as { code: string }).code === DbErrorCodes.UNIQUE_CONSTRAINT_VIOLATION
             ) {
-                throw new ConflictError("USER_EMAIL_TAKEN");
+                throw new ConflictError(ErrorKeys.USER_EMAIL_TAKEN);
             }
             throw error;
         }

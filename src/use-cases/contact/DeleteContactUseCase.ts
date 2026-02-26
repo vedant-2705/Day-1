@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 import { UserRole } from "domain/enum/UserRole.js";
 import { CONTACT_REPOSITORY, type IContactRepository } from "interfaces/repositories/IContactRepository.js";
 import { LOGGER, Logger } from "logging/Logger.js";
@@ -34,7 +34,7 @@ export class DeleteContactUseCase {
 
         if (!existingContact) {
             this.logger.warn(`Contact with ID ${id} not found for deletion`);
-            throw new NotFoundError(`CONTACT_NOT_FOUND`, { id });
+            throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
 
         if(
@@ -42,7 +42,7 @@ export class DeleteContactUseCase {
             existingContact.createdBy !== authUser.userId
         ) {
             this.logger.warn(`User ${authUser.userId} attempted to access contact ${id} owned by ${existingContact.createdBy}`);
-            throw new NotFoundError(ERROR_CODES.CONTACT_NOT_FOUND.code, { id });
+            throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
         
 
@@ -51,7 +51,7 @@ export class DeleteContactUseCase {
         // Secondary guard: handles race conditions where the record was removed between checks
         if (!deleted) {
             this.logger.warn(`Contact with ID ${id} not found for deletion`);
-            throw new NotFoundError(`CONTACT_NOT_FOUND`, { id });
+            throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
         this.logger.info(`Contact deleted with ID: ${id}`);
     }

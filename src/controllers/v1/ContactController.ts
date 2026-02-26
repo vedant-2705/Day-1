@@ -48,8 +48,9 @@ export class ContactControllerV1 {
     /** GET /contacts - returns all contacts. 
      * @responds 200
      */
-    getAll = async (_req: Request, res: Response, next: NextFunction): Promise<void> => {
-        const results = await this.getContactsUseCase.execute();
+    getAll = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+        const authUser = req as AuthenticatedRequest
+        const results = await this.getContactsUseCase.execute(authUser.user);
 
         res.status(StatusCodes.OK).json(
             successResponse(results),

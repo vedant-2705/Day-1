@@ -8,7 +8,7 @@ import { LoginInput } from "validators/authValidator.js";
 import { USER_MAPPER } from "interfaces/mapper/IUserMapper.js";
 import { UserMapper } from "mapper/UserMapper.js";
 import { AuthResult, RequestContext } from "types/auth/index.js";
-import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 import { UnauthorizedError } from "shared/errors/UnauthorizedError.js";
 
 @injectable()
@@ -33,7 +33,7 @@ export class LoginUseCase {
         const raw = await this.userRepo.findRawByEmail(input.email);
 
         if (!raw) {
-            throw new UnauthorizedError(ERROR_CODES.INVALID_CREDENTIALS.code);
+            throw new UnauthorizedError(ErrorKeys.INVALID_CREDENTIALS);
         }
 
         // Verify password - bcrypt.compare is constant-time
@@ -42,7 +42,7 @@ export class LoginUseCase {
             raw.passwordHash,
         );
         if (!valid) {
-            throw new UnauthorizedError(ERROR_CODES.INVALID_CREDENTIALS.code);
+            throw new UnauthorizedError(ErrorKeys.INVALID_CREDENTIALS);
         }
 
         // Map to safe DTO - passwordHash never leaves this use case

@@ -42,8 +42,10 @@ export class ContactRepository implements IContactRepository {
      * The soft-delete Prisma extension automatically injects `deletedAt: null` into
      * this query, so archived contacts are never included in the result.
      */
-    async findAll(): Promise<ContactDTO[]> {
-        const contacts = await this.prisma.contact.findMany();
+    async findAll(params: { createdBy?: string }): Promise<ContactDTO[]> {
+        const contacts = await this.prisma.contact.findMany({
+            where: params.createdBy ? { createdBy: params.createdBy } : {},
+        });
         // const contacts: Contact[] = await this.prisma.$queryRaw`SELECT * FROM "contacts"`;
         
         return this.contactMapper.toDTOs(contacts);
@@ -171,7 +173,7 @@ export class ContactRepository implements IContactRepository {
      * both {@link findAllWithOffset} and {@link findAllWithCursor}.
      */
     private buildContactWhere(params: ContactQueryParams): object {
-        const { search, name, email } = params;
+        const { search, name, email, createdBy } = params;
         const conditions: object[] = [];
 
         // search: case-insensitive fuzzy match across BOTH name and email simultaneously.
@@ -193,6 +195,11 @@ export class ContactRepository implements IContactRepository {
         // email: independent case-insensitive substring filter, applied in addition to search
         if (email) {
             conditions.push({ email: { contains: email, mode: 'insensitive' } });
+        }
+
+        // Ownership filter - injected by use case for USER role
+        if (createdBy) {
+            conditions.push({ createdBy });
         }
 
         return conditions.length > 0 ? { AND: conditions } : {};

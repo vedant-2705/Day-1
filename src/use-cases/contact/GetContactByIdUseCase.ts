@@ -1,4 +1,4 @@
-import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 import { ContactDTO } from "dto/ContactDTO.js";
 import { UserRole } from "generated/prisma/enums.js";
 import { CONTACT_REPOSITORY, type IContactRepository } from "interfaces/repositories/IContactRepository.js";
@@ -32,7 +32,7 @@ export class GetContactByIdUseCase {
 
         if (!contact) {
             this.logger.warn(`Contact with ID ${id} not found`);
-            throw new NotFoundError(ERROR_CODES.CONTACT_NOT_FOUND.code, { id });
+            throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
 
         if(
@@ -40,7 +40,7 @@ export class GetContactByIdUseCase {
             contact.createdBy !== authUser.userId
         ) {
             this.logger.warn(`User ${authUser.userId} attempted to access contact ${id} owned by ${contact.createdBy}`);
-            throw new NotFoundError(ERROR_CODES.CONTACT_NOT_FOUND.code, { id });
+            throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
 
         this.logger.info(`Retrieved contact with ID ${id}`);

@@ -14,6 +14,7 @@ import {
 import { LOGGER, Logger } from "logging/Logger.js";
 import { NotFoundError } from "shared/errors/NotFoundError.js";
 import { AuditLog } from "generated/prisma/client.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 
 /**
  * Retrieves the full audit trail of a contact in reverse chronological order.
@@ -49,7 +50,7 @@ export class GetContactHistoryUseCase {
 
         if (!contact) {
             this.logger.warn(`Contact ${id} not found for history lookup`);
-            throw new NotFoundError("CONTACT_NOT_FOUND", { id });
+            throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
 
         this.logger.info(`Fetching audit history for contact ${id}`);

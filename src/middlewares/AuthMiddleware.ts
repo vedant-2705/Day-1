@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import { container } from "tsyringe";
-import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { ErrorKeys } from "constants/ErrorCodes.js";
 import type { NextFunction, Request, Response } from "express";
 import { UserRole } from "generated/prisma/client.js";
 import { JwtService } from "lib/jwt/JwtService.js";
@@ -37,13 +37,13 @@ export function authMiddleware(
 
     // Header must exist and follow "Bearer <token>" format
     if (!authHeader?.startsWith('Bearer ')) {
-        throw new UnauthorizedError(ERROR_CODES.INVALID_TOKEN.code);
+        return next(new UnauthorizedError(ErrorKeys.INVALID_TOKEN));
     }
 
     const token = authHeader.split(' ')[1];
 
     if (!token) {
-        throw new UnauthorizedError(ERROR_CODES.INVALID_TOKEN.code);
+        return next(new UnauthorizedError(ErrorKeys.INVALID_TOKEN));
     }
 
     try {
@@ -63,6 +63,6 @@ export function authMiddleware(
     } catch {
         // jwt.verify throws for expired tokens, invalid signature, malformed token
         // We don't leak which specific check failed
-        throw new UnauthorizedError(ERROR_CODES.INVALID_TOKEN.code);
+        return next(new UnauthorizedError(ErrorKeys.INVALID_TOKEN));
     }
 }

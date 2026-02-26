@@ -16,7 +16,7 @@ import {
 export interface IContactRepository {
 
     /** Retrieves all contacts. Returns an empty array if none exist. */
-    findAll(): Promise<ContactDTO[]>;
+    findAll(params: { createdBy?: string }): Promise<ContactDTO[]>;
 
     /**
      * Retrieves a contact by its unique identifier.
