@@ -86,4 +86,29 @@ export class UserRepository implements IUserRepository {
         });
         return count > 0;
     }
+
+    /**
+     * Updates the role of a user by ID.
+     * Returns the updated UserDTO, or null if the user was not found.
+     */
+    async updateRole(id: string, role: UserRole): Promise<UserDTO | null> {
+        try {
+            const user = await this.prisma.user.update({
+                where: { id },
+                data: { role },
+            });
+            return this.userMapper.toDTO(user);
+        } catch (error: unknown) {
+            // P2025 = record not found - user with this ID does not exist
+            if (
+                typeof error === "object" &&
+                error !== null &&
+                "code" in error &&
+                (error as { code: string }).code === DbErrorCodes.RECORD_NOT_FOUND
+            ) {
+                return null;
+            }
+            throw error;
+        }
+    }
 }

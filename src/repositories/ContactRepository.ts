@@ -360,7 +360,7 @@ export class ContactRepository implements IContactRepository {
                     SPLIT_PART(email, '@', 2) AS domain,
                     COUNT(*)::bigint          AS count
                 FROM contacts
-                WHERE "deletedAt" IS NULL
+                WHERE "deleted_at" IS NULL
                 GROUP BY domain
                 ORDER BY count DESC
                 LIMIT 10

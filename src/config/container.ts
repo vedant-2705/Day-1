@@ -12,6 +12,7 @@ import { registerReportContainer } from "./modules/ReportContainer.js";
 import { registerRefreshTokenContainer } from "./modules/RefreshTokenContainer.js";
 import { registerUserContainer } from "./modules/UserContainer.js";
 import { registerAuthContainer } from "./modules/AuthContainer.js";
+import { registerAdminContainer } from "./modules/AdminContainer.js";
 
 /**
  * Registers all application dependencies into the tsyringe DI container.
@@ -28,4 +29,5 @@ export function registerDependencies() {
     registerUserContainer();
     registerRefreshTokenContainer();
     registerAuthContainer();
+    registerAdminContainer();
 }

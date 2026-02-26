@@ -8,6 +8,7 @@
 import { Router } from 'express';
 import { contactRoutesV1 } from './contactRoutes.js';
 import { reportsRoutes } from './reportRoutes.js';
+import { adminRoutes } from 'routes/admin/adminRoutes.js';
 
 const v1Router = Router();
 
@@ -16,5 +17,8 @@ v1Router.use('/contacts', contactRoutesV1);
 
 /** Aggregated report endpoints for API v1. */
 v1Router.use('/reports', reportsRoutes);
+
+/** Admin routes for API v1. */
+v1Router.use('/admin', adminRoutes);
 
 export default v1Router;

@@ -23,10 +23,9 @@ const router = Router();
 // Version negotiation runs before all route handlers.
 // It reads the Accept-Version header and rewrites unversioned URLs to include
 // the resolved version prefix so the correct versioned router handles the request.
+router.use("/auth", authRoutes);
+
 router.use(versionNegotiationMiddleware);
-
-router.use('/auth', authRoutes);
-
 router.use(authMiddleware); // All contact routes require authentication
 router.use(requestContextMiddleware);
 
