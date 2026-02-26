@@ -111,6 +111,46 @@ export const ERROR_CODES = {
         title: ReasonPhrases.CONFLICT,
         message: "A contact with email '{email}' already exists",
     },
+
+    // -------------------------------------------------------------------------
+    // User domain errors - specific to user/resource operations
+    // -------------------------------------------------------------------------
+    USER_EMAIL_TAKEN: {
+        code:       'USER_EMAIL_TAKEN',
+        statusCode: StatusCodes.CONFLICT,
+        title:      ReasonPhrases.CONFLICT,
+        message:    "An account with email '{email}' already exists",
+    },
+    USER_NOT_FOUND: {
+        code:       'USER_NOT_FOUND',
+        statusCode: StatusCodes.NOT_FOUND,
+        title:      ReasonPhrases.NOT_FOUND,
+        message:    "User with id '{id}' was not found",
+    },
+    INVALID_CREDENTIALS: {
+        code:       'INVALID_CREDENTIALS',
+        statusCode: StatusCodes.UNAUTHORIZED,
+        title:      ReasonPhrases.UNAUTHORIZED,
+        message:    "Invalid email or password",
+    },
+    INVALID_TOKEN: {
+        code:       'INVALID_TOKEN',
+        statusCode: StatusCodes.UNAUTHORIZED,
+        title:      ReasonPhrases.UNAUTHORIZED,
+        message:    "Token is invalid or has expired",
+    },
+    TOKEN_REUSE_DETECTED: {
+        code:       'TOKEN_REUSE_DETECTED',
+        statusCode: StatusCodes.UNAUTHORIZED,
+        title:      ReasonPhrases.UNAUTHORIZED,
+        message:    "Security violation detected. All sessions have been invalidated",
+    },
+    INSUFFICIENT_PERMISSIONS: {
+        code:       'INSUFFICIENT_PERMISSIONS',
+        statusCode: StatusCodes.FORBIDDEN,
+        title:      ReasonPhrases.FORBIDDEN,
+        message:    "You do not have permission to perform this action",
+},
 } as const;
 
 /**

@@ -5,6 +5,9 @@ import { UpdateContactDTO } from "validators/contactValidator.js";
 import { ConflictError } from "shared/errors/ConflictError.js";
 import { NotFoundError } from "shared/errors/NotFoundError.js";
 import { inject, injectable } from "tsyringe";
+import { AuthUser } from "middlewares/AuthMiddleware.js";
+import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { UserRole } from "domain/enum/UserRole.js";
 
 /**
  * Use case: Update an existing contact by ID.
@@ -32,7 +35,7 @@ export class UpdateContactUseCase {
      * @throws {ConflictError}  If the new email is already used by another contact
      * @throws {NotFoundError}  If no contact with the given ID exists
      */
-    async execute(id: string, input: UpdateContactDTO): Promise<ContactDTO> {
+    async execute(id: string, input: UpdateContactDTO, authUser: AuthUser): Promise<ContactDTO> {
         const { email } = input;
         this.logger.info(`Updating contact with ID: ${id}`);
 
@@ -45,6 +48,22 @@ export class UpdateContactUseCase {
                 throw new ConflictError(`CONTACT_EMAIL_CONFLICT`, { email: input.email as string });
             }
         }
+
+        const contact = await this.contactRepository.findById(id);
+
+        if (!contact) {
+            this.logger.warn(`Contact with ID ${id} not found for update`);
+            throw new NotFoundError(`CONTACT_NOT_FOUND`, { id });
+        }
+
+        if(
+            authUser.role === UserRole.USER &&
+            contact.createdBy !== authUser.userId
+        ) {
+            this.logger.warn(`User ${authUser.userId} attempted to access contact ${id} owned by ${contact.createdBy}`);
+            throw new NotFoundError(ERROR_CODES.CONTACT_NOT_FOUND.code, { id });
+        }
+        
 
         const updated = await this.contactRepository.update(id, input);
 

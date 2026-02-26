@@ -27,6 +27,7 @@ import { StatusCodes } from "http-status-codes";
 import { contactQuerySchema } from "validators/paginationValidator.js";
 import { SortBuilder } from "lib/pagination/SortBuilder.js";
 import { GET_CONTACT_HISTORY_USE_CASE, GetContactHistoryUseCase } from "use-cases/contact/GetContactHistoryUseCase.js";
+import { AuthenticatedRequest } from "middlewares/AuthMiddleware.js";
 
 @singleton()
 export class ContactControllerV2 extends ContactControllerV1 {
@@ -85,6 +86,7 @@ export class ContactControllerV2 extends ContactControllerV1 {
             return next(parsed.error);
         }
 
+        const authReq = req as AuthenticatedRequest;
         const { paginationType, sort: sortParam, ...rest } = parsed.data;
 
         const sort = SortBuilder.parse(sortParam);
@@ -93,7 +95,7 @@ export class ContactControllerV2 extends ContactControllerV1 {
 
         if (paginationType === "offset") {
             const result =
-                await this.getContactsUseCase.executeWithOffset(queryParams);
+                await this.getContactsUseCase.executeWithOffset(queryParams, authReq.user);
             res.status(StatusCodes.OK).json(
                 successResponse(result.data, {
                     pagination: result.pagination,
@@ -101,7 +103,7 @@ export class ContactControllerV2 extends ContactControllerV1 {
             );
         } else {
             const result =
-                await this.getContactsUseCase.executeWithCursor(queryParams);
+                await this.getContactsUseCase.executeWithCursor(queryParams, authReq.user);
             res.status(StatusCodes.OK).json(
                 successResponse(result.data, {
                     pagination: result.pagination,

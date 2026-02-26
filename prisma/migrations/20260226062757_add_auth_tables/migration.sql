@@ -9,6 +9,3 @@ DROP INDEX "contact_email_unique_idx";
 
 -- CreateIndex
 CREATE UNIQUE INDEX "contact_email_unique_idx" ON "contacts"("email") WHERE ("deleted_at" IS NULL);
-
--- RenameIndex
-ALTER INDEX "audit_entity_type_entity_id_idx" RENAME TO "audit_log_entity_type_entity_id_idx";

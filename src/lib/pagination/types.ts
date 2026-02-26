@@ -137,4 +137,7 @@ export interface ContactQueryParams {
     cursor?: string;
     /** Traversal direction. `"forward"` (default) moves toward older records; `"backward"` reverses. */
     direction?: "forward" | "backward";
+
+    /** Injected by use case for USER role */
+    createdBy?: string;
 }

@@ -12,6 +12,7 @@
 
 import { Prisma } from "generated/prisma/client.js";
 import { Logger } from "logging/Logger.js";
+import { RequestContext } from "lib/context/RequestContext.js";
 
 /**
  * Registry of Prisma model names that should be audit-logged.
@@ -64,6 +65,8 @@ export function createAuditExtension(logger: Logger) {
                         const idField = AUDITED_MODELS[model];
                         const modelAccessor =
                             model.charAt(0).toLowerCase() + model.slice(1);
+                        
+                        const context = RequestContext.getStore();
 
                         // -------------------------------------------------------------
                         // CREATE - run the query first, then log the created record
@@ -84,7 +87,9 @@ export function createAuditExtension(logger: Logger) {
                                         entityId: String(result[idField]),
                                         action: "CREATE",
                                         newData: result,
-                                        performedBy: "system",
+                                        performedBy: context?.userId ?? 'system',
+                                        ipAddress:   context?.ip ?? null,
+                                        userAgent:   context?.userAgent ?? null
                                     },
                                 })
                                 .catch((err: unknown) =>
@@ -133,7 +138,9 @@ export function createAuditExtension(logger: Logger) {
                                         action: isSoftDelete ? "DELETE" : "UPDATE",
                                         oldData: oldData ?? undefined,
                                         newData: result,
-                                        performedBy: "system",
+                                        performedBy: context?.userId ?? 'system',
+                                        ipAddress:   context?.ip ?? null,
+                                        userAgent:   context?.userAgent ?? null
                                     },
                                 })
                                 .catch((err: unknown) =>
@@ -174,7 +181,9 @@ export function createAuditExtension(logger: Logger) {
                                             : "unknown",
                                         action: "DELETE",
                                         oldData: oldData ?? undefined,
-                                        performedBy: "system",
+                                        performedBy: context?.userId ?? 'system',
+                                        ipAddress:   context?.ip ?? null,
+                                        userAgent:   context?.userAgent ?? null
                                     },
                                 })
                                 .catch((err: unknown) =>
@@ -211,7 +220,9 @@ export function createAuditExtension(logger: Logger) {
                                             operation === "updateMany"
                                                 ? { data: (args as any).data }
                                                 : undefined,
-                                        performedBy: "system",
+                                        performedBy: context?.userId ?? 'system',
+                                        ipAddress:   context?.ip ?? null,
+                                        userAgent:   context?.userAgent ?? null
                                     },
                                 })
                                 .catch((err: unknown) =>

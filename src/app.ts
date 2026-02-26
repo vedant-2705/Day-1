@@ -25,15 +25,17 @@ import { registerDependencies } from "config/container.js";
 registerDependencies();
 
 import masterRoutes from "routes/index.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
 const logger = container.resolve(Logger);
 const dbConnection = container.resolve(DatabaseConnection);
 
 // --- Middleware ---
+app.use(cookieParser());
+app.use(requestLogger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(requestLogger);
 
 // --- Routes ---
 

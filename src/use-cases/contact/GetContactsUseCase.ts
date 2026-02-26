@@ -6,10 +6,12 @@
  * with optional search, filtering, and sorting).
  */
 
+import { UserRole } from "domain/enum/UserRole.js";
 import { ContactDTO } from "dto/ContactDTO.js";
 import { CONTACT_REPOSITORY, type IContactRepository } from "interfaces/repositories/IContactRepository.js";
 import { ContactQueryParams, CursorPaginatedResult, OffsetPaginatedResult } from "lib/pagination/types.js";
 import { LOGGER, Logger } from "logging/Logger.js";
+import { AuthUser } from "middlewares/AuthMiddleware.js";
 import { inject, injectable } from "tsyringe";
 
 /**
@@ -55,9 +57,14 @@ export class GetContactsUseCase {
      */
     async executeWithOffset(
         params: ContactQueryParams,
+        authUser: AuthUser,
     ): Promise<OffsetPaginatedResult<ContactDTO>> {
         this.logger.info('Fetching contacts with offset pagination', params);
-        return this.contactRepository.findAllWithOffset(params);
+        const ownerFilter = this.buildOwnerFilter(authUser);
+        return this.contactRepository.findAllWithOffset({
+            ...params,
+            ...ownerFilter,
+        });
     }
 
     /**
@@ -69,9 +76,23 @@ export class GetContactsUseCase {
      */
     async executeWithCursor(
         params: ContactQueryParams,
+        authUser: AuthUser,
     ): Promise<CursorPaginatedResult<ContactDTO>> {
         this.logger.info('Fetching contacts with cursor pagination', params);
-        return this.contactRepository.findAllWithCursor(params);
+        const ownerFilter = this.buildOwnerFilter(authUser);
+        return this.contactRepository.findAllWithCursor({
+            ...params,
+            ...ownerFilter,
+        });
+    }
+
+    // ADMIN  -> no filter, sees everything
+    // USER   -> createdBy filter, sees only their own contacts
+    private buildOwnerFilter(authUser: AuthUser): Partial<ContactQueryParams> {
+        if (authUser.role === UserRole.ADMIN) {
+            return {};
+        }
+        return { createdBy: authUser.userId };
     }
 }
 

@@ -15,4 +15,5 @@ export interface Contact {
     deletedAt?: Date; // Soft delete timestamp; null if not deleted
     /** Optimistic concurrency version - incremented on every update. */
     version: number;
+    createdBy: string; // User ID of the creator
 }

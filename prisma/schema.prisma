@@ -14,6 +14,64 @@ datasource db {
     provider = "postgresql"
 }
 
+// ----------------------------------------------------
+// Enums
+// ----------------------------------------------------
+enum AuditAction {
+    CREATE
+    UPDATE
+    DELETE
+}
+
+enum UserRole {
+    ADMIN
+    USER
+}
+
+// ----------------------------------------------------
+// Models
+// ----------------------------------------------------
+model User {
+    id            String   @id @default(uuid())
+    name          String
+    email         String   @unique
+    passwordHash  String                   @map("password_hash")
+    role          UserRole @default(USER)
+    createdAt     DateTime @default(now()) @map("created_at")
+    updatedAt     DateTime @updatedAt      @map("updated_at")
+
+    // Relations
+    contacts      Contact[]
+    refreshTokens RefreshToken[]
+
+    @@index([email], name: "user_email_idx")
+    @@map("users")
+}
+
+model RefreshToken {
+    id         String    @id @default(uuid())
+    userId     String    @map("user_id")
+    tokenHash  String    @map("token_hash")   // SHA-256 hash of the actual token
+    deviceInfo String?   @map("device_info")  // optional - parsed from user-agent
+    ipAddress  String?   @map("ip_address")
+    expiresAt  DateTime  @map("expires_at")
+    revokedAt  DateTime? @map("revoked_at")   // null = active, timestamp = revoked
+    createdAt  DateTime  @default(now()) @map("created_at")
+
+    // Relations
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    // Indexes
+    // "find token by hash" - used on every refresh request
+    @@index([tokenHash], name: "refresh_token_hash_idx")
+    // "find all tokens for user" - used on logout-all
+    @@index([userId], name: "refresh_token_user_id_idx")
+    // "find active tokens for user" - used to check session count
+    @@index([userId, revokedAt], name: "refresh_token_user_id_revoked_at_idx")
+
+    @@map("refresh_tokens")
+}
+
 model Contact {
     id        String    @id @default(uuid())
     name      String
@@ -26,17 +84,24 @@ model Contact {
 
     version Int @default(1)
 
+    // Ownership - who created this contact
+    createdBy String? @map("created_by")
+    user      User?   @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+
+
     @@unique([email], name: "contact_email_key", map: "contact_email_unique_idx", where: raw("\"deleted_at\" IS NULL"))
 
-    // For soft delete filtering — almost every query filters on this
+    // For soft delete filtering - almost every query filters on this
     @@index([deletedAt], name: "contact_deleted_at_idx")
 
     // For cursor pagination default sort (createdAt DESC, id DESC)
-    // Composite index — both fields together, matches the ORDER BY exactly
+    // Composite index - both fields together, matches the ORDER BY exactly
     @@index([createdAt(sort: Desc), id(sort: Desc)], name: "contact_created_at_id_idx")
 
     // For search and sort on name
     @@index([name], name: "contact_name_idx")
+
+    @@index([createdBy], name: "contact_created_by_idx")
 
     // For search and sort on email
     @@index([email], name: "contact_email_idx")
@@ -83,20 +148,15 @@ model AuditLog {
 
     createdAt DateTime @default(now())  @map("created_at")
 
-    // "Show all changes to contact X" — most common audit query
+    // "Show all changes to contact X" - most common audit query
     @@index([entityType, entityId], name: "audit_log_entity_type_entity_id_idx")
 
-    // "Show all changes today" — used by reports
+    // "Show all changes today" - used by reports
     @@index([createdAt], name: "audit_log_created_at_idx")
 
-    // "Show all deletes" — used by compliance queries
+    // "Show all deletes" - used by compliance queries
     @@index([action], name: "audit_log_action_idx")
 
     @@map("audit_logs")
 }
 
-enum AuditAction {
-    CREATE
-    UPDATE
-    DELETE
-}

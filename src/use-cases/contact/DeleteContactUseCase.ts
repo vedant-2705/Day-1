@@ -1,5 +1,8 @@
+import { ERROR_CODES } from "constants/ErrorCodes.js";
+import { UserRole } from "domain/enum/UserRole.js";
 import { CONTACT_REPOSITORY, type IContactRepository } from "interfaces/repositories/IContactRepository.js";
 import { LOGGER, Logger } from "logging/Logger.js";
+import { AuthUser } from "middlewares/AuthMiddleware.js";
 import { NotFoundError } from "shared/errors/NotFoundError.js";
 import { inject, injectable } from "tsyringe";
 
@@ -23,7 +26,7 @@ export class DeleteContactUseCase {
      * @param id - UUID of the contact to delete
      * @throws {NotFoundError} If no contact with the given ID exists
      */
-    async execute(id: string): Promise<void> {
+    async execute(id: string, authUser: AuthUser): Promise<void> {
         this.logger.info(`Attempting to delete contact with ID: ${id}`);
 
         // Guard: confirm the contact exists before issuing the delete
@@ -33,6 +36,15 @@ export class DeleteContactUseCase {
             this.logger.warn(`Contact with ID ${id} not found for deletion`);
             throw new NotFoundError(`CONTACT_NOT_FOUND`, { id });
         }
+
+        if(
+            authUser.role === UserRole.USER &&
+            existingContact.createdBy !== authUser.userId
+        ) {
+            this.logger.warn(`User ${authUser.userId} attempted to access contact ${id} owned by ${existingContact.createdBy}`);
+            throw new NotFoundError(ERROR_CODES.CONTACT_NOT_FOUND.code, { id });
+        }
+        
 
         const deleted = await this.contactRepository.delete(id);
 

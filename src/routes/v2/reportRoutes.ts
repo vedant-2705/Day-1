@@ -9,11 +9,12 @@ import { Router } from 'express';
 import { asyncHandler } from 'middlewares/AsyncHandler.js';
 import { resolveController } from 'helpers/ControllerResolver.js';
 import { ReportController } from 'controllers/shared/ReportController.js';
+import { requireRole } from 'middlewares/RoleMiddleware.js';
+import { UserRole } from 'generated/prisma/enums.js';
 
 const router = Router();
 
 const controller = resolveController(ReportController);
-
 /**
  * GET /v2/reports/contacts-report
  * Returns aggregated contact statistics (total, added today, top email domains).
@@ -21,6 +22,7 @@ const controller = resolveController(ReportController);
  */
 router.get(
     '/contacts-report',
+    requireRole(UserRole.ADMIN), // Only admins can access reports
     asyncHandler((req, res, next) => controller().getContactReport(req, res, next)),
 );
 

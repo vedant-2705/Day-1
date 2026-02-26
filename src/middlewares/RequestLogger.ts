@@ -51,7 +51,7 @@ export function requestLogger(
         const timestamp = new Date().toISOString();
 
         console.log(
-            `${color}[${timestamp}] ${method} ${url} → ${status} (${duration}ms) ip=${ip}${reset}`,
+            `${color}[${timestamp}] ${method} ${url} → ${status} (${duration}ms) ip=${ip}${reset} userAgent=${req.headers["user-agent"] ?? "unknown"}`,
         );
     });
 

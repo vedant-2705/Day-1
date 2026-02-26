@@ -25,4 +25,6 @@ export interface ContactDTO {
     address: string;
     createdAt: Date;
     updatedAt: Date;
+
+    createdBy: string | null; // Expose creator's user ID for auditing purposes
 }

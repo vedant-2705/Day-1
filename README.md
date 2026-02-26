@@ -30,7 +30,7 @@ Must include:
 
 ---
 
-Day 2 REST, Error Handling, Pagination & Versioning
+# Day 2 REST, Error Handling, Pagination & Versioning
  
 Topics
 * REST conventions
@@ -54,3 +54,28 @@ Extend Contact Book into “CRM Lite”:
    - total contacts     
    - contacts added today     
    - most common domain (gmail/yahoo/outlook)
+
+---
+
+# Day 3 : Authentication, Authorization, JWT, Tokens
+ 
+Topics
+- JWT access + refresh
+- Roles/permissions
+- Password hashing
+ 
+Practical Tips
+- Build login + register  
+- Role-based middleware
+ 
+### Assignment:
+ 
+Add full authentication system to CRM Lite:
+ 
+1. Register/Login with password hashing
+2. Access + Refresh tokens (store in DB)
+3. Secure refresh token rotation
+4. Role-based routes:
+   - admin can see all contacts
+   - normal user sees only his own
+5. Add session invalidation endpoint: logout from all devices

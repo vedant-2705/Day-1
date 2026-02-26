@@ -1,6 +1,9 @@
+import { ERROR_CODES } from "constants/ErrorCodes.js";
 import { ContactDTO } from "dto/ContactDTO.js";
+import { UserRole } from "generated/prisma/enums.js";
 import { CONTACT_REPOSITORY, type IContactRepository } from "interfaces/repositories/IContactRepository.js";
 import { LOGGER, Logger } from "logging/Logger.js";
+import { AuthUser } from "middlewares/AuthMiddleware.js";
 import { NotFoundError } from "shared/errors/NotFoundError.js";
 import { inject, injectable } from "tsyringe";
 
@@ -24,12 +27,20 @@ export class GetContactByIdUseCase {
      * @returns The matching contact as a DTO
      * @throws {NotFoundError} If no contact with the given ID exists
      */
-    async execute(id: string): Promise<ContactDTO> {
+    async execute(id: string, authUser: AuthUser): Promise<ContactDTO> {
         const contact = await this.contactRepository.findById(id);
 
         if (!contact) {
             this.logger.warn(`Contact with ID ${id} not found`);
-            throw new NotFoundError('CONTACT_NOT_FOUND', { id });
+            throw new NotFoundError(ERROR_CODES.CONTACT_NOT_FOUND.code, { id });
+        }
+
+        if(
+            authUser.role === UserRole.USER &&
+            contact.createdBy !== authUser.userId
+        ) {
+            this.logger.warn(`User ${authUser.userId} attempted to access contact ${id} owned by ${contact.createdBy}`);
+            throw new NotFoundError(ERROR_CODES.CONTACT_NOT_FOUND.code, { id });
         }
 
         this.logger.info(`Retrieved contact with ID ${id}`);

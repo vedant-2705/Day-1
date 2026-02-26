@@ -4,6 +4,7 @@ import { LOGGER, Logger } from "logging/Logger.js";
 import { CreateContactDTO } from "validators/contactValidator.js";
 import { ConflictError } from "shared/errors/ConflictError.js";
 import { inject, injectable } from "tsyringe";
+import { AuthUser } from "middlewares/AuthMiddleware.js";
 
 /**
  * Use case: Create a new contact.
@@ -26,7 +27,7 @@ export class CreateContactUseCase {
      * @returns The newly created contact as a DTO
      * @throws {ConflictError} If a contact with the given email already exists
      */
-    async execute(input: CreateContactDTO): Promise<ContactDTO> {
+    async execute(input: CreateContactDTO, authUser: AuthUser): Promise<ContactDTO> {
         // Guard: email must be unique across all contacts
         const existing = await this.contactRepository.findByEmail(input.email);
         if (existing) {
@@ -35,7 +36,10 @@ export class CreateContactUseCase {
 
         this.logger.info(`Creating contact with email: ${input.email}`);
 
-        const contact = await this.contactRepository.create(input);
+        const contact = await this.contactRepository.create({
+            ...input,
+            createdBy: authUser.userId, // Associate contact with creator's user ID
+        });
 
         this.logger.info(`Contact created with ID: ${contact.id}`);
 

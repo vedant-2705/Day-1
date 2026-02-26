@@ -86,9 +86,12 @@ export class ContactRepository implements IContactRepository {
      * @param input - Validated contact creation payload containing name, email, phone, and address.
      * @returns The {@link ContactDTO} representing the newly created contact, including its generated ID.
      */
-    async create(input: CreateContactDTO): Promise<ContactDTO> {
+    async create(input: CreateContactDTO & { createdBy: string }): Promise<ContactDTO> {
         const contact = await this.prisma.contact.create({
-            data: input,
+            data: {
+                ...input,
+                createdBy: input.createdBy, // Associate contact with creator's user ID
+            },
         });
 
         return this.contactMapper.toDTO(contact);

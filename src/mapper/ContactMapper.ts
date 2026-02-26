@@ -28,6 +28,7 @@ export class ContactMapper implements IContactMapper {
             address: contact.address,
             createdAt: contact.createdAt,
             updatedAt: contact.updatedAt,
+            createdBy: contact.createdBy,
         };
     }
     

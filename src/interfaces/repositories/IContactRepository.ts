@@ -37,7 +37,7 @@ export interface IContactRepository {
      * @param input Validated contact creation payload
      * @returns The newly created ContactDTO
      */
-    create(input: CreateContactDTO): Promise<ContactDTO>;
+    create(input: CreateContactDTO & { createdBy: string }): Promise<ContactDTO>;
 
     /**
      * Updates an existing contact.

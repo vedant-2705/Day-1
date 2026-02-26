@@ -16,6 +16,7 @@ import { CREATE_CONTACT_USE_CASE, CreateContactUseCase } from "use-cases/contact
 import { UPDATE_CONTACT_USE_CASE, UpdateContactUseCase } from "use-cases/contact/UpdateContactUseCase.js";
 import { DELETE_CONTACT_USE_CASE, DeleteContactUseCase } from "use-cases/contact/DeleteContactUseCase.js";
 import { StatusCodes } from "http-status-codes";
+import { AuthenticatedRequest } from "middlewares/AuthMiddleware.js";
 
 
 /**
@@ -61,8 +62,9 @@ export class ContactControllerV1 {
     getById = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
         const { id } = req.params;
+        const authReq = req as AuthenticatedRequest;
 
-        const contact = await this.getContactByIdUseCase.execute(id as string);
+        const contact = await this.getContactByIdUseCase.execute(id as string, authReq.user);
 
         res.status(StatusCodes.OK).json(
             successResponse(contact),
@@ -75,8 +77,9 @@ export class ContactControllerV1 {
     create = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
         const data: CreateContactDTO = req.body;
+        const authReq = req as AuthenticatedRequest;
 
-        const newContact = await this.createContactUseCase.execute(data);
+        const newContact = await this.createContactUseCase.execute(data, authReq.user);
 
         res.status(StatusCodes.CREATED).json(
             successResponse(newContact),
@@ -88,8 +91,9 @@ export class ContactControllerV1 {
      */
     update = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const { id } = req.params;
+        const authReq = req as AuthenticatedRequest;
 
-        const updatedContact = await this.updateContactUseCase.execute(id as string, req.body);
+        const updatedContact = await this.updateContactUseCase.execute(id as string, req.body, authReq.user);
 
         res.status(StatusCodes.OK).json(
             successResponse(updatedContact),
@@ -101,8 +105,9 @@ export class ContactControllerV1 {
      */
     delete = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         const { id } = req.params;
+        const authReq = req as AuthenticatedRequest;
 
-        await this.deleteContactUseCase.execute(id as string);
+        await this.deleteContactUseCase.execute(id as string, authReq.user);
         res.status(StatusCodes.OK).json(
             successResponse({ message: "Contact deleted successfully" }),
         );
