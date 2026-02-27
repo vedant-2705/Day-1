@@ -5,8 +5,8 @@
  * via requireRole(UserRole.ADMIN).
  *
  * Business rules:
- * - Target user must exist → 404 if not found
- * - Target user must currently be USER → 409 if already ADMIN
+ * - Target user must exist             -> 404 if not found
+ * - Target user must currently be USER -> 409 if already ADMIN
  * - Caller cannot be the same as the target (no self-promotion guard needed
  *   since they're already ADMIN to reach this endpoint)
  */
@@ -45,7 +45,6 @@ export class PromoteUserUseCase {
     async execute(targetUserId: string): Promise<UserDTO> {
         this.logger.info(`Attempting to promote user ${targetUserId} to ADMIN`);
 
-        // Guard: user must exist
         const user = await this.userRepo.findById(targetUserId);
 
         if (!user) {
@@ -55,7 +54,7 @@ export class PromoteUserUseCase {
             });
         }
 
-        // Guard: already an admin - idempotent promotion would be confusing
+        // already an admin - idempotent promotion would be confusing
         // Return 409 so the caller knows no change was made
         if (user.role === UserRole.ADMIN) {
             this.logger.warn(

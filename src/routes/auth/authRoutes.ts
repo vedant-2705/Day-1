@@ -1,3 +1,12 @@
+/**
+ * @module authRoutes
+ * @description Defines all `/api/auth` routes.
+ *
+ * Route protection levels:
+ * - Public         - no token required (register, login, refresh)
+ * - Semi-protected - logout works regardless of token validity (clears cookie unconditionally)
+ * - Protected      - valid access token required (logout-all, me)
+ */
 import { Router } from "express";
 import { AuthController } from "controllers/auth/AuthController.js";
 import { asyncHandler } from "middlewares/AsyncHandler.js";
@@ -10,7 +19,10 @@ import { requestContextMiddleware } from "middlewares/RequestContextMiddleware.j
 const router = Router();
 const controller = resolveController(AuthController);
 
-// Public routes - no auth required
+// ---------------------------------------------------------------------------
+// Public routes - no authentication required
+// ---------------------------------------------------------------------------
+
 router.post(
     "/register",
     validate(registerSchema),
@@ -23,19 +35,26 @@ router.post(
     asyncHandler((req, res, next) => controller().login(req, res, next)),
 );
 
+// Reads the refresh token from the HttpOnly cookie - no Authorization header needed
 router.post(
     "/refresh",
     asyncHandler((req, res, next) => controller().refresh(req, res, next)),
 );
 
-// Semi-protected - logout works even with invalid token (clears cookie regardless)
+// ---------------------------------------------------------------------------
+// Semi-protected - logout is intentionally open so the cookie is always cleared
+// even when the access token is missing or expired
+// ---------------------------------------------------------------------------
+
 router.post(
     "/logout",
     asyncHandler((req, res, next) => controller().logout(req, res, next)),
 );
 
-// Protected - requires valid access token
-// AuthMiddleware added in Step 6 after it's built
+// ---------------------------------------------------------------------------
+// Protected - valid access token required
+// ---------------------------------------------------------------------------
+
 router.post(
     "/logout-all",
     authMiddleware,

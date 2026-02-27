@@ -1,3 +1,14 @@
+/**
+ * @module UserRepository
+ * @description Concrete Prisma implementation of {@link IUserRepository}.
+ *
+ * All methods that return user data use the mapper to produce a safe {@link UserDTO},
+ * ensuring `passwordHash` is never accidentally leaked. The sole exception is
+ * {@link findRawByEmail}, which is reserved exclusively for `LoginUseCase`.
+ *
+ * Email addresses are normalised to lowercase on every read and write to ensure
+ * case-insensitive uniqueness without a case-insensitive database collation.
+ */
 import "reflect-metadata";
 import { inject, singleton } from "tsyringe";
 import { UserRole } from "generated/prisma/client.js";
@@ -30,6 +41,9 @@ export class UserRepository implements IUserRepository {
         return this.dbConnection.getClient();
     }
 
+    /**
+     * {@inheritdoc IUserRepository.findById}
+     */
     async findById(id: string): Promise<UserDTO | null> {
         const user = await this.prisma.user.findUnique({
             where: { id },
@@ -37,6 +51,9 @@ export class UserRepository implements IUserRepository {
         return user ? this.userMapper.toDTO(user) : null;
     }
 
+    /**
+     * {@inheritdoc IUserRepository.findByEmail}
+     */
     async findByEmail(email: string): Promise<UserDTO | null> {
         const user = await this.prisma.user.findUnique({
             where: { email: email.toLowerCase() },
@@ -48,6 +65,8 @@ export class UserRepository implements IUserRepository {
      * Returns raw Prisma User including passwordHash.
      * Only LoginUseCase should call this - to verify the submitted password.
      * All other callers use findByEmail which returns the safe UserDTO.
+     *
+     * {@inheritdoc IUserRepository.findRawByEmail}
      */
     async findRawByEmail(email: string): Promise<User | null> {
         return this.prisma.user.findUnique({
@@ -55,6 +74,9 @@ export class UserRepository implements IUserRepository {
         });
     }
 
+    /**
+     * {@inheritdoc IUserRepository.create}
+     */
     async create(data: CreateUserDTO): Promise<UserDTO> {
         try {
             const user = await this.prisma.user.create({
@@ -80,6 +102,9 @@ export class UserRepository implements IUserRepository {
         }
     }
 
+    /**
+     * {@inheritdoc IUserRepository.existsByEmail}
+     */
     async existsByEmail(email: string): Promise<boolean> {
         const count = await this.prisma.user.count({
             where: { email: email.toLowerCase() },
@@ -90,6 +115,8 @@ export class UserRepository implements IUserRepository {
     /**
      * Updates the role of a user by ID.
      * Returns the updated UserDTO, or null if the user was not found.
+     *
+     * {@inheritdoc IUserRepository.updateRole}
      */
     async updateRole(id: string, role: UserRole): Promise<UserDTO | null> {
         try {

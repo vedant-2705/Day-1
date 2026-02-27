@@ -293,7 +293,7 @@ export class CursorPaginator {
         const lastRow = data[data.length - 1];
 
         // baseSorts = what SortBuilder resolved (user sort or default)
-        // We use this for encoding — not the flipped version used for querying
+        // We use this for encoding - not the flipped version used for querying
         const baseSorts: SortField[] = sort ?? [{ field: 'createdAt', direction: 'desc' }];
 
 

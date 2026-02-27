@@ -8,7 +8,7 @@
 
 import { z } from "zod";
 
-/** Allows only letters and spaces — rejects numbers and special characters. */
+/** Allows only letters and spaces - rejects numbers and special characters. */
 const phoneRegex = /^[1-9][0-9]{9}$/;
 
 /** 10-digit phone number starting with a non-zero digit (no country code). */

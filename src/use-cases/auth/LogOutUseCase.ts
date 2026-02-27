@@ -1,3 +1,13 @@
+/**
+ * @module LogoutUseCase
+ * @description Use case that revokes the refresh token for the current device,
+ * logging the user out of this session only. Other active sessions on other
+ * devices remain valid.
+ *
+ * This use case is intentionally lenient: if the token is not found or has already
+ * been revoked, no error is raised. From the client's perspective logout must always
+ * succeed - if the token is invalid, the session is effectively already ended.
+ */
 import "reflect-metadata";
 import { inject, injectable } from "tsyringe";
 import { REFRESH_TOKEN_REPOSITORY, type IRefreshTokenRepository } from "interfaces/repositories/IRefreshTokenRepository.js";
@@ -11,12 +21,9 @@ export class LogoutUseCase {
     ) {}
 
     /**
-     * Revokes the single refresh token for the current device.
-     * Other active sessions on other devices remain valid.
+     * Revokes the refresh token associated with the current device session.
      *
-     * No error is thrown if the token is not found or already revoked -
-     * logout should always succeed from the client's perspective.
-     * If the token is invalid, the client is effectively already logged out.
+     * @param rawToken - The raw (unhashed) refresh token read from the HttpOnly cookie.
      */
     async execute(rawToken: string): Promise<void> {
         const tokenHash = HashService.hashToken(rawToken);

@@ -1,6 +1,17 @@
+/**
+ * @module HashService
+ * @description Static utility class that centralises all cryptographic operations
+ * required by the authentication system.
+ *
+ * Two separate hashing strategies are used intentionally:
+ *
+ * | Concern      | Algorithm | Reason                                                                                          |
+ * |--------------|-----------|-------------------------------------------------------------------------------------------------|
+ * | Passwords    | bcrypt    | Slow, adaptive cost, built-in salt - defends against brute force on low-entropy input           |
+ * | Token hashes | SHA-256   | Fast - input is already 256 bits of CSPRNG output, so brute force is computationally infeasible |
+ */
 import bcrypt from "bcrypt";
 import { createHash, randomBytes } from "crypto";
-
 /**
  * HashService handles two distinct hashing concerns:
  *

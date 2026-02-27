@@ -12,7 +12,7 @@ import { UserRole } from "domain/enum/UserRole.js";
 /**
  * Use case: Update an existing contact by ID.
  *
- * If a new email is provided, enforces uniqueness — a contact cannot take an email
+ * If a new email is provided, enforces uniqueness - a contact cannot take an email
  * already owned by a *different* contact.
  *
  * Throws {@link ConflictError} (409) on email collision.

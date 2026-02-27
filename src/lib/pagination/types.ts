@@ -69,7 +69,7 @@ export interface CursorPayload {
  * Input parameters for a cursor-paginated query.
  * @property cursor    - Opaque cursor token from the previous page response; omit for the first page.
  * @property limit     - Maximum number of records to return per page.
- * @property direction - `"forward"` (default) traverses newer → older; `"backward"` reverses traversal.
+ * @property direction - `"forward"` (default) traverses newer -> older; `"backward"` reverses traversal.
  */
 export interface CursorPaginationParams {
     cursor?: string;

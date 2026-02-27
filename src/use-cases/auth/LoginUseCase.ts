@@ -1,3 +1,12 @@
+/**
+ * @module LoginUseCase
+ * @description Use case that authenticates a user with email and password,
+ * then issues a JWT access token and a persisted opaque refresh token.
+ *
+ * This is the only use case that calls `findRawByEmail` - the sole repository
+ * method that returns `passwordHash`. The hash never leaves this use case;
+ * all return values use the safe {@link UserDTO} (via the mapper).
+ */
 import "reflect-metadata";
 import { inject, injectable } from "tsyringe";
 import { type IUserRepository, USER_REPOSITORY } from "interfaces/repositories/IUserRepository.js";
@@ -27,16 +36,23 @@ export class LoginUseCase {
         private readonly userMapper: UserMapper,
     ) {}
 
+    /**
+     * Verifies credentials and issues a token pair on success.
+     *
+     * @param input - Validated login payload (email + password).
+     * @param ctx   - Request context (IP, User-Agent) for session tracking.
+     * @returns {@link AuthResult} containing the safe user profile and both tokens.
+     * @throws {UnauthorizedError} If the email is not found or the password does not match.
+     */
     async execute(input: LoginInput, ctx: RequestContext): Promise<AuthResult> {
-        // Fetch raw user - we need passwordHash to verify
-        // findRawByEmail is the only method that returns it
+        // findRawByEmail is the only method that returns passwordHash
         const raw = await this.userRepo.findRawByEmail(input.email);
 
         if (!raw) {
             throw new UnauthorizedError(ErrorKeys.INVALID_CREDENTIALS);
         }
 
-        // Verify password - bcrypt.compare is constant-time
+        // bcrypt.compare is constant-time - safe against timing attacks
         const valid = await HashService.comparePassword(
             input.password,
             raw.passwordHash,
@@ -48,14 +64,14 @@ export class LoginUseCase {
         // Map to safe DTO - passwordHash never leaves this use case
         const user = this.userMapper.toDTO(raw);
 
-        // Sign access token
+        // Sign short-lived access token
         const accessToken = this.jwtService.signAccessToken({
             userId: user.id,
             email: user.email,
             role: user.role,
         });
 
-        // Generate and store refresh token
+        // Generate opaque refresh token, persist only its hash
         const rawRefreshToken = HashService.generateToken();
 
         await this.refreshTokenRepo.create({

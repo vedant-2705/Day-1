@@ -1,3 +1,9 @@
+/**
+ * @module ReportController
+ * @description Handles HTTP requests for reporting endpoints shared across API versions.
+ * Delegates all business logic to injected use cases and formats responses via
+ * {@link successResponse}.
+ */
 import "reflect-metadata";
 import { inject, singleton } from "tsyringe";
 import type { NextFunction, Request, Response } from "express";
@@ -20,7 +26,6 @@ export class ReportController {
      */
     getContactReport = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
-        // Cache miss — compute fresh result
         const stats = await this.getContactReportUseCase.execute();
         res.status(StatusCodes.OK).json(successResponse(stats));
     };

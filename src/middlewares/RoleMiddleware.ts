@@ -1,3 +1,12 @@
+/**
+ * @module RoleMiddleware
+ * @description Factory middleware that enforces role-based access control (RBAC)
+ * on Express routes.
+ *
+ * Must always be mounted **after** `authMiddleware` - it reads `req.user.role`
+ * which `authMiddleware` attaches. If `authMiddleware` has not run, `req.user`
+ * will be `undefined` and the middleware falls through to a 403.
+ */
 import { Request, Response, NextFunction } from "express";
 import { UserRole } from "generated/prisma/client.js";
 import { AuthenticatedRequest } from "./AuthMiddleware.js";

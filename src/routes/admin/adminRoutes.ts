@@ -2,7 +2,7 @@
  * @module adminRoutes
  * @description Shared admin routes used by both v1 and v2 routers.
  * All routes here require:
- *   1. Valid access token (authMiddleware — applied globally in routes/index.ts)
+ *   1. Valid access token (authMiddleware - applied globally in routes/index.ts)
  *   2. ADMIN role (requireRole applied here per route)
  *
  * Route table:
@@ -24,7 +24,7 @@ const controller = resolveController(AdminController);
 
 /**
  * POST /admin/users/:id/promote
- * Promotes the target user from USER → ADMIN.
+ * Promotes the target user from USER -> ADMIN.
  * Requires: authenticated + ADMIN role
  */
 router.post(

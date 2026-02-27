@@ -1,25 +1,73 @@
+/**
+ * @module IUserRepository
+ * @description Defines the persistence contract for user data access.
+ *
+ * Most methods return the safe {@link UserDTO} (no `passwordHash`).
+ * The sole exception is {@link findRawByEmail}, which returns the raw {@link User}
+ * entity and must only be used where password verification is required.
+ */
 import { User } from "domain/entities/User.js";
 import { CreateUserDTO, UserDTO } from "dto/UserDTO.js";
 import { UserRole } from "generated/prisma/enums.js";
-    
 
 export interface IUserRepository {
-    // Returns UserDTO - safe for general use, no passwordHash
+    /**
+     * Finds a user by their unique ID.
+     * Returns a safe {@link UserDTO} - `passwordHash` is excluded.
+     *
+     * @param id The CUID of the user to look up.
+     * @returns The matching {@link UserDTO}, or `null` if not found.
+     */
     findById(id: string): Promise<UserDTO | null>;
+
+    /**
+     * Finds a user by their email address.
+     * Returns a safe {@link UserDTO} - `passwordHash` is excluded.
+     *
+     * @param email The email address to look up.
+     * @returns The matching {@link UserDTO}, or `null` if not found.
+     */
     findByEmail(email: string): Promise<UserDTO | null>;
+
+    /**
+     * Creates a new user record from the supplied DTO.
+     *
+     * @param data Registration data including the pre-hashed password.
+     * @returns The newly created user as a safe {@link UserDTO}.
+     */
     create(data: CreateUserDTO): Promise<UserDTO>;
+
+    /**
+     * Checks whether a user with the given email already exists.
+     * Used during registration to enforce unique email addresses.
+     *
+     * @param email The email address to check.
+     * @returns `true` if a user with that email exists, `false` otherwise.
+     */
     existsByEmail(email: string): Promise<boolean>;
 
-    // Returns raw Prisma User INCLUDING passwordHash
-    // Only used by LoginUseCase to verify the password
+    /**
+     * Finds a user by email and returns the *raw* {@link User} domain entity,
+     * including the `passwordHash` field.
+     *
+     * **Use only in `LoginUseCase`** where the hash must be compared against the
+     * supplied plain-text password. Never expose this method's result to the client.
+     *
+     * @param email The email address to look up.
+     * @returns The raw {@link User} entity (with `passwordHash`), or `null` if not found.
+     */
     findRawByEmail(email: string): Promise<User | null>;
 
     /**
-     * Promotes a USER to ADMIN role.
-     * Returns the updated UserDTO, or null if the user was not found.
+     * Updates the role of an existing user.
+     * Used by `PromoteUserUseCase` to elevate a `USER` to `ADMIN`.
+     *
+     * @param id   The CUID of the user to update.
+     * @param role The new role to assign.
+     * @returns The updated {@link UserDTO}, or `null` if no user with that ID exists.
      */
     updateRole(id: string, role: UserRole): Promise<UserDTO | null>;
-    
 }
 
+/** DI token used to resolve {@link IUserRepository} from the tsyringe container. */
 export const USER_REPOSITORY = Symbol.for("IUserRepository"); 

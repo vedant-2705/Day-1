@@ -1,3 +1,15 @@
+/**
+ * @module AuthMiddleware
+ * @description Express middleware that authenticates incoming requests by verifying
+ * the JWT access token supplied in the `Authorization` header.
+ *
+ * On success, the decoded payload is attached to `req.user` so downstream handlers
+ * and middlewares can read the authenticated user's ID, email, and role without
+ * hitting the database.
+ *
+ * This middleware only handles **access tokens**. Refresh tokens are stored in an
+ * HttpOnly cookie and are only read by `AuthController.refresh`.
+ */
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { ErrorKeys } from "constants/ErrorCodes.js";
@@ -6,13 +18,14 @@ import { UserRole } from "generated/prisma/client.js";
 import { JwtService } from "lib/jwt/JwtService.js";
 import { UnauthorizedError } from "shared/errors/UnauthorizedError.js";
 
+/** Shape of the authenticated user payload attached to the request by this middleware. */
 export interface AuthUser {
     userId: string;
     email: string;
     role: UserRole;
 }
 
-// Extends Express Request with the authenticated user attached by AuthMiddleware
+/** Extends the Express `Request` type with the `user` property set by {@link authMiddleware}. */
 export interface AuthenticatedRequest extends Request {
     user: AuthUser;
 }

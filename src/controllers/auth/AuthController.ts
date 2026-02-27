@@ -1,3 +1,14 @@
+/**
+ * @module AuthController
+ * @description Handles HTTP requests for all authentication endpoints:
+ * registration, login, token refresh, logout (single device), logout-all (all devices),
+ * and current-user lookup.
+ *
+ * Refresh tokens are issued as HttpOnly cookies scoped to `/api/auth` so they are
+ * never accessible to JavaScript and are not sent on unrelated API requests.
+ * Access tokens are returned in the JSON response body for the client to store
+ * in memory.
+ */
 import "reflect-metadata";
 import { inject, injectable } from "tsyringe";
 import { Request, Response, NextFunction } from "express";
@@ -44,8 +55,12 @@ export class AuthController {
         private readonly jwtService: JwtService,
     ) {}
 
-    // POST /api/auth/register 
-
+    /**
+     * POST /api/auth/register
+     *
+     * Registers a new user, issues an access token and sets the refresh token cookie.
+     * @responds 201 - Created. Returns `{ user, accessToken }`.
+     */
     async register(
         req: Request,
         res: Response,
@@ -67,8 +82,12 @@ export class AuthController {
         );
     }
 
-    // POST /api/auth/login
-
+    /**
+     * POST /api/auth/login
+     *
+     * Authenticates a user with email and password, issues an access token and sets the refresh token cookie.
+     * @responds 200 - OK. Returns `{ user, accessToken }`.
+     */
     async login(
         req: Request,
         res: Response,
@@ -88,14 +107,19 @@ export class AuthController {
         );
     }
 
-    // POST /api/auth/refresh 
-
+    /**
+     * POST /api/auth/refresh
+     *
+     * Rotates the refresh token cookie and issues a new access token.
+     * Reads the refresh token exclusively from the HttpOnly cookie - body values are ignored.
+     * @responds 200 - OK. Returns `{ accessToken }`.
+     */
     async refresh(
         req: Request,
         res: Response,
         next: NextFunction,
     ): Promise<void> {
-        // Read refresh token from HttpOnly cookie — not from body
+        // Read refresh token from HttpOnly cookie - not from body
         // If client sends it in body, ignore it (could be XSS-extracted)
         const rawToken = req.cookies?.[this.jwtService.getCookieName()] as
             | string
@@ -110,7 +134,7 @@ export class AuthController {
         const { accessToken, refreshToken } =
             await this.refreshTokenUseCase.execute(rawToken, ctx);
 
-        // Rotate cookie — old cookie replaced with new token
+        // Rotate cookie - old cookie replaced with new token
         this.setRefreshCookie(res, refreshToken);
 
         res.status(StatusCodes.OK).json(
@@ -118,8 +142,14 @@ export class AuthController {
         );
     }
 
-    // POST /api/auth/logout
-
+    /**
+     * POST /api/auth/logout
+     *
+     * Revokes the current device's refresh token and clears the cookie.
+     * Always returns 200 - even if the cookie was already absent - so the client
+     * can treat logout as idempotent.
+     * @responds 200 - OK.
+     */
     async logout(
         req: Request,
         res: Response,
@@ -129,7 +159,7 @@ export class AuthController {
             | string
             | undefined;
 
-        // If no cookie present, client is already logged out — still return 200
+        // If no cookie present, client is already logged out - still return 200
         // Logout must always succeed from the client's perspective
         if (rawToken) {
             await this.logoutUseCase.execute(rawToken);
@@ -140,14 +170,19 @@ export class AuthController {
         res.status(StatusCodes.OK).json(successResponse(null));
     }
 
-    // POST /api/auth/logout-all
-
+    /**
+     * POST /api/auth/logout-all
+     *
+     * Revokes all active refresh tokens for the authenticated user, logging out every device.
+     * Requires `authMiddleware` to run first - `userId` is read from the verified JWT payload.
+     * @responds 200 - OK.
+     */
     async logoutAll(
         req: Request,
         res: Response,
         next: NextFunction,
     ): Promise<void> {
-        // userId from verified JWT — AuthMiddleware must run before this
+        // userId from verified JWT - AuthMiddleware must run before this
         // User cannot pass a different userId to log out someone else
         const authReq = req as AuthenticatedRequest;
 
@@ -160,8 +195,13 @@ export class AuthController {
         );
     }
 
-    // GET /api/auth/me
-
+    /**
+     * GET /api/auth/me
+     *
+     * Returns the profile of the currently authenticated user.
+     * Requires `authMiddleware` - `userId` is read from the verified JWT payload.
+     * @responds 200 - OK. Returns `{ user }`.
+     */
     async me(req: Request, res: Response, next: NextFunction): Promise<void> {
         const authReq = req as AuthenticatedRequest;
 
@@ -201,7 +241,7 @@ export class AuthController {
 
     /**
      * Clears the refresh token cookie on logout.
-     * Must use the same path/domain options as when it was set — otherwise
+     * Must use the same path/domain options as when it was set - otherwise
      * the browser won't find the cookie to clear it.
      */
     private clearRefreshCookie(res: Response): void {

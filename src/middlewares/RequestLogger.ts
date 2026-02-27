@@ -23,7 +23,7 @@ function shouldLog(level: keyof typeof LOG_LEVELS): boolean {
 }
 
 /**
- * Logs each request as: `METHOD /path → STATUS (Xms) ip=x.x.x.x`
+ * Logs each request as: `METHOD /path -> STATUS (Xms) ip=x.x.x.x`
  * Output is color-coded by status range: green (2xx), yellow (4xx), red (5xx).
  * Skipped entirely when the configured log level is above "debug".
  */
@@ -51,7 +51,7 @@ export function requestLogger(
         const timestamp = new Date().toISOString();
 
         console.log(
-            `${color}[${timestamp}] ${method} ${url} → ${status} (${duration}ms) ip=${ip}${reset} userAgent=${req.headers["user-agent"] ?? "unknown"}`,
+            `${color}[${timestamp}] ${method} ${url} -> ${status} (${duration}ms) ip=${ip}${reset} userAgent=${req.headers["user-agent"] ?? "unknown"}`,
         );
     });
 

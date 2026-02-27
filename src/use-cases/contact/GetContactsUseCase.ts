@@ -18,11 +18,11 @@ import { inject, injectable } from "tsyringe";
  * Use case: retrieve contacts from the repository.
  *
  * @remarks
- * Never throws for an empty result set — an empty array is a valid, expected response.
+ * Never throws for an empty result set - an empty array is a valid, expected response.
  * Three execution methods cover the two API versions:
- * - `execute` — v1 flat list, no pagination.
- * - `executeWithOffset` — v2 page/limit pagination.
- * - `executeWithCursor` — v2 keyset pagination (default for v2).
+ * - `execute` - v1 flat list, no pagination.
+ * - `executeWithOffset` - v2 page/limit pagination.
+ * - `executeWithCursor` - v2 keyset pagination (default for v2).
  */
 @injectable()
 export class GetContactsUseCase {

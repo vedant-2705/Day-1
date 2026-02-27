@@ -1,3 +1,9 @@
+/**
+ * @module ContactContainer
+ * @description Registers contact-domain dependencies into the tsyringe IoC container.
+ * Covers the contact repository, mapper, all contact use cases, and both v1/v2 controllers.
+ */
+
 import "reflect-metadata";
 import { container } from "tsyringe";
 import { ContactRepository } from "repositories/ContactRepository.js";

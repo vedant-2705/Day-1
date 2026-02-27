@@ -59,7 +59,7 @@ app.get("/health", async (_req: Request, res: Response) => {
 
 app.use("/api", masterRoutes);
 
-// Catch-all for unmatched routes — must be registered after all valid routes
+// Catch-all for unmatched routes - must be registered after all valid routes
 app.use((_req: Request, res: Response) => {
     res.status(404).json({
         success: false,
@@ -67,12 +67,12 @@ app.use((_req: Request, res: Response) => {
     });
 });
 
-// Global error handler — must be the last middleware registered
+// Global error handler - must be the last middleware registered
 app.use(errorHandler);
 
 /**
  * Connects to the database then starts the HTTP server.
- * Exits the process with code 1 if startup fails — prevents a partially
+ * Exits the process with code 1 if startup fails - prevents a partially
  * initialised server from accepting traffic.
  */
 async function startServer() {

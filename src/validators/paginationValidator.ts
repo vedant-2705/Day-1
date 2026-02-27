@@ -7,9 +7,9 @@
  * in a single step, so controllers always receive correctly typed values.
  *
  * Three schemas are exported:
- * - {@link offsetPaginationSchema} — page/limit validation for offset pagination.
- * - {@link cursorPaginationSchema} — cursor/limit/direction for cursor pagination.
- * - {@link contactQuerySchema} — full v2 query schema combining search, filters, sort, and pagination.
+ * - {@link offsetPaginationSchema} - page/limit validation for offset pagination.
+ * - {@link cursorPaginationSchema} - cursor/limit/direction for cursor pagination.
+ * - {@link contactQuerySchema} - full v2 query schema combining search, filters, sort, and pagination.
  */
 
 import { z } from "zod";
@@ -92,7 +92,7 @@ export const cursorPaginationSchema = z.object({
  * - `email` is lowercased automatically to normalise input before filtering.
  * - `sort` is left as a raw string here; {@link SortBuilder.parse} handles
  *   further parsing and allowlist validation downstream.
- * - `paginationType` defaults to `"cursor"` — the preferred strategy for v2.
+ * - `paginationType` defaults to `"cursor"` - the preferred strategy for v2.
  * - `direction` defaults to `"forward"` when not provided.
  */
 export const contactQuerySchema = z.object({

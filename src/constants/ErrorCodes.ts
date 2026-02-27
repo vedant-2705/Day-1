@@ -127,6 +127,10 @@ export const ERROR_CODES = {
         title:      ReasonPhrases.NOT_FOUND,
         message:    "User with id '{id}' was not found",
     },
+
+    // -------------------------------------------------------------------------
+    // Authentication errors - specific to login, token validation, and auth checks
+    // -------------------------------------------------------------------------
     INVALID_CREDENTIALS: {
         code:       'INVALID_CREDENTIALS',
         statusCode: StatusCodes.UNAUTHORIZED,

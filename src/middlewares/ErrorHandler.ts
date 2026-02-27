@@ -22,7 +22,7 @@ import { handlePrismaError } from "helpers/errors/PrismaErrorHelper.js";
 import { Prisma } from "generated/prisma/client.js";
 
 /**
- * Global error handler. Matches the Express 4-argument error middleware signature —
+ * Global error handler. Matches the Express 4-argument error middleware signature -
  * all four parameters are required even if unused, otherwise Express won't treat it as an error handler.
  *
  * @param err  - The error passed to `next(err)`
