@@ -2,7 +2,7 @@
  * @module IPasswordResetTokenRepository
  * @description Defines the persistence contract for password reset token management.
  *
- * Tokens are stored as SHA-256 hashes — the plain token is never persisted.
+ * Tokens are stored as SHA-256 hashes - the plain token is never persisted.
  * Used and expired tokens are soft-invalidated (not deleted) to maintain an
  * audit trail of reset attempts per user.
  */
@@ -27,7 +27,7 @@ export interface IPasswordResetTokenRepository {
     /**
      * Finds a reset token by its SHA-256 hash.
      *
-     * Does NOT filter by `usedAt` or `expiresAt` — the calling use case is
+     * Does NOT filter by `usedAt` or `expiresAt` - the calling use case is
      * responsible for checking those fields so it can respond appropriately
      * to expired vs already-used tokens.
      *

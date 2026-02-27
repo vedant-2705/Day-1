@@ -32,20 +32,23 @@ enum UserRole {
 // Models
 // ----------------------------------------------------
 model User {
-    id            String   @id @default(uuid())
-    name          String
-    email         String   @unique
-    passwordHash  String                   @map("password_hash")
-    role          UserRole @default(USER)
-    createdAt     DateTime @default(now()) @map("created_at")
-    updatedAt     DateTime @updatedAt      @map("updated_at")
+    id           String   @id @default(uuid())
+    name         String
+    email        String   @unique
+    passwordHash String   @map("password_hash")
+    role         UserRole @default(USER)
+    createdAt    DateTime @default(now()) @map("created_at")
+    updatedAt    DateTime @updatedAt @map("updated_at")
 
-    emailVerified Boolean  @default(false) @map("email_verified")
+    emailVerified Boolean @default(false) @map("email_verified")
 
+    profilePicture      String?  @map("profile_picture")
+    profilePicturePath  String?  @map("profile_picture_path")
     // Relations
-    contacts      Contact[]
-    refreshTokens RefreshToken[]
+    contacts            Contact[]
+    refreshTokens       RefreshToken[]
     passwordResetTokens PasswordResetToken[]
+    documents           Document[]
 
     @@index([email], name: "user_email_idx")
     @@map("users")
@@ -54,11 +57,11 @@ model User {
 model RefreshToken {
     id         String    @id @default(uuid())
     userId     String    @map("user_id")
-    tokenHash  String    @map("token_hash")   // SHA-256 hash of the actual token
-    deviceInfo String?   @map("device_info")  // optional - parsed from user-agent
+    tokenHash  String    @map("token_hash") // SHA-256 hash of the actual token
+    deviceInfo String?   @map("device_info") // optional - parsed from user-agent
     ipAddress  String?   @map("ip_address")
     expiresAt  DateTime  @map("expires_at")
-    revokedAt  DateTime? @map("revoked_at")   // null = active, timestamp = revoked
+    revokedAt  DateTime? @map("revoked_at") // null = active, timestamp = revoked
     createdAt  DateTime  @default(now()) @map("created_at")
 
     // Relations
@@ -71,7 +74,6 @@ model RefreshToken {
     @@index([userId], name: "refresh_token_user_id_idx")
     // "find active tokens for user" - used to check session count
     @@index([userId, revokedAt], name: "refresh_token_user_id_revoked_at_idx")
-
     @@map("refresh_tokens")
 }
 
@@ -82,8 +84,8 @@ model Contact {
     phone     String
     address   String
     createdAt DateTime  @default(now()) @map("created_at")
-    updatedAt DateTime  @updatedAt      @map("updated_at")
-    deletedAt DateTime?                 @map("deleted_at")
+    updatedAt DateTime  @updatedAt @map("updated_at")
+    deletedAt DateTime? @map("deleted_at")
 
     version Int @default(1)
 
@@ -91,24 +93,17 @@ model Contact {
     createdBy String? @map("created_by")
     user      User?   @relation(fields: [createdBy], references: [id], onDelete: SetNull)
 
-
     @@unique([email], name: "contact_email_key", map: "contact_email_unique_idx", where: raw("\"deleted_at\" IS NULL"))
-
     // For soft delete filtering - almost every query filters on this
     @@index([deletedAt], name: "contact_deleted_at_idx")
-
     // For cursor pagination default sort (createdAt DESC, id DESC)
     // Composite index - both fields together, matches the ORDER BY exactly
     @@index([createdAt(sort: Desc), id(sort: Desc)], name: "contact_created_at_id_idx")
-
     // For search and sort on name
     @@index([name], name: "contact_name_idx")
-
     @@index([createdBy], name: "contact_created_by_idx")
-
     // For search and sort on email
     @@index([email], name: "contact_email_idx")
-
     @@map("contacts")
 }
 
@@ -134,14 +129,14 @@ model AuditLog {
     id String @id @default(uuid())
 
     // Which model was affected and which record
-    entityType String @map("entity_type")// e.g. "Contact" 
+    entityType String @map("entity_type") // e.g. "Contact" 
     entityId   String @map("entity_id") // e.g. the contact's uuid
 
     // What happened
     action AuditAction
 
     // Snapshots - Json type stores arbitrary objects
-    oldData Json? @map("old_data")// null for CREATE
+    oldData Json? @map("old_data") // null for CREATE
     newData Json? @map("new_data") // null for DELETE
 
     // Who did it - nullable because some operations are system-triggered
@@ -149,36 +144,54 @@ model AuditLog {
     ipAddress   String? @map("ip_address")
     userAgent   String? @map("user_agent")
 
-    createdAt DateTime @default(now())  @map("created_at")
+    createdAt DateTime @default(now()) @map("created_at")
 
     // "Show all changes to contact X" - most common audit query
     @@index([entityType, entityId], name: "audit_log_entity_type_entity_id_idx")
-
     // "Show all changes today" - used by reports
     @@index([createdAt], name: "audit_log_created_at_idx")
-
     // "Show all deletes" - used by compliance queries
     @@index([action], name: "audit_log_action_idx")
-
     @@map("audit_logs")
 }
 
 model PasswordResetToken {
-    id        String    @id @default(uuid())
-    userId    String    @map("user_id")
-    tokenHash String    @unique @map("token_hash")
-    expiresAt DateTime  @map("expires_at")
-    usedAt    DateTime? @map("used_at")    // null = unused, timestamp = consumed
-    createdAt DateTime  @default(now())    @map("created_at")
+    id              String    @id @default(uuid())
+    userId          String    @map("user_id")
+    tokenHash       String    @unique @map("token_hash")
+    expiresAt       DateTime  @map("expires_at")
+    usedAt          DateTime? @map("used_at") // null = unused, timestamp = consumed
+    createdAt       DateTime  @default(now()) @map("created_at")
 
     // Cascade delete - if user is deleted, their reset tokens go too
     user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
     // "find token by hash" - used on every reset request
     @@index([tokenHash], name: "password_reset_token_hash_idx")
-
     // "find all tokens for user" - used to invalidate previous tokens
     @@index([userId], name: "password_reset_user_id_idx")
-
     @@map("password_reset_tokens")
+}
+
+model Document {
+    id          String   @id @default(cuid())
+    userId      String   @map("user_id")
+    /// Original filename as uploaded by the user - for display purposes only.
+    /// Never used as a storage key (collision/XSS risk).
+    fileName    String   @map("file_name")
+    /// Cloudinary public_id (or relative path for local storage).
+    /// Used to reference or delete the asset from the storage provider.
+    storagePath String   @map("storage_path")
+    /// Fully-qualified public URL served by Cloudinary CDN (or local /uploads path).
+    publicUrl   String   @map("public_url")
+    /// MIME type as detected from magic bytes, not from the file extension.
+    mimeType    String   @map("mime_type")
+    /// File size in bytes - stored for quota enforcement and display.
+    sizeBytes   Int      @map("size_bytes")
+    uploadedAt  DateTime @default(now()) @map("uploaded_at")
+
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@index([userId], name: "document_user_id_idx")
+    @@map("documents")
 }

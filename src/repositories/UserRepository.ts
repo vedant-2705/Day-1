@@ -146,4 +146,28 @@ export class UserRepository implements IUserRepository {
             data: { passwordHash },
         });
     }
+
+    /**
+     * Updates both the public profile picture URL and the internal storage path.
+     *
+     * Why two fields:
+     *  - profilePicture      -> the CDN URL served to clients
+     *  - profilePicturePath  -> the provider key (Cloudinary public_id) needed to
+     *                          DELETE the old asset before the next upload.
+     *                          Without this, each upload would leave an orphaned
+     *                          file consuming storage quota.
+     */
+    async updateProfilePicture(
+        id: string,
+        publicUrl: string,
+        storagePath: string
+    ): Promise<void> {
+        await this.prisma.user.update({
+        where: { id },
+        data: {
+            profilePicture: publicUrl,
+            profilePicturePath: storagePath,
+        },
+        });
+    }
 }

@@ -52,4 +52,7 @@ export interface UserDTO {
 
     /** Timestamp of the last update to this user record. */
     updatedAt: Date;
+
+    profilePicture: string | null;
+    profilePicturePath: string | null;
 }

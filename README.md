@@ -79,3 +79,28 @@ Add full authentication system to CRM Lite:
    - admin can see all contacts
    - normal user sees only his own
 5. Add session invalidation endpoint: logout from all devices
+
+---
+
+# Day 4 File Uploads + Swagger
+ 
+Topics
+File uploads (images, docs)
+Multipart handling
+Swagger documentation
+Folder storage strategy
+ 
+Practical tips
+Add Swagger UI  
+Upload profile picture for each user
+ 
+### Assignment:
+ 
+Build fully documented Upload Service: (Cloudinary + Local)
+ 
+1. /upload/profile (image only)
+2. /upload/document (pdf/doc only)
+3. Validate file type + size
+4. Generate dynamic folder structure
+5. Add retry logic + error handling
+6. Add Swagger docs for every route including error schemas

@@ -81,6 +81,21 @@ export interface IUserRepository {
      */
     updatePassword(id: string, passwordHash: string): Promise<void>;
 
+    /**
+     * Updates the user's profile picture URL and storage path.
+     * Called by UploadProfilePictureUseCase after a successful storage upload.
+     *
+     * @param id               - User CUID.
+     * @param publicUrl        - CDN URL to display in the client (stored in profilePicture).
+     * @param storagePath      - Provider storage key used for future deletion
+     *                           (stored in profilePicturePath, never returned to clients).
+     */
+    updateProfilePicture(
+        id: string,
+        publicUrl: string,
+        storagePath: string
+    ): Promise<void>;
+
 }
 
 /** DI token used to resolve {@link IUserRepository} from the tsyringe container. */

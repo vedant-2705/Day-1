@@ -2,7 +2,7 @@
  * @module PasswordResetTokenRepository
  * @description Concrete Prisma implementation of {@link IPasswordResetTokenRepository}.
  *
- * Tokens are stored as SHA-256 hashes — the plain token is never persisted.
+ * Tokens are stored as SHA-256 hashes - the plain token is never persisted.
  * Expired or used tokens are retained in the database rather than deleted,
  * providing an audit trail of reset attempts per user.
  */
@@ -24,7 +24,7 @@ export class PasswordResetTokenRepository implements IPasswordResetTokenReposito
         private readonly dbConnection: DatabaseConnection,
     ) {}
 
-    /** Convenience accessor — avoids repeating `this.dbConnection.getClient()` on every method. */
+    /** Convenience accessor - avoids repeating `this.dbConnection.getClient()` on every method. */
     private get prisma() {
         return this.dbConnection.getClient();
     }
@@ -42,7 +42,7 @@ export class PasswordResetTokenRepository implements IPasswordResetTokenReposito
      * {@inheritDoc IPasswordResetTokenRepository.findByTokenHash}
      *
      * @remarks
-     * Does NOT filter by `usedAt` or `expiresAt` — the calling use case must
+     * Does NOT filter by `usedAt` or `expiresAt` - the calling use case must
      * check those fields itself to distinguish between an expired token and a
      * replayed (already-used) one.
      */
