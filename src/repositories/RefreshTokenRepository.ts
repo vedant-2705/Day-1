@@ -88,4 +88,20 @@ export class RefreshTokenRepository implements IRefreshTokenRepository {
             },
         });
     }
+
+    /** {@inheritDoc IRefreshTokenRepository.revokeAllExcept} */
+    async revokeAllExcept(userId: string, currentTokenHash: string): Promise<void> {
+        await this.prisma.refreshToken.updateMany({
+            where: {
+                userId,
+                revokedAt: null,           // only active sessions
+                tokenHash: {
+                    not: currentTokenHash, // skip the current session
+                },
+            },
+            data: {
+                revokedAt: new Date(),
+            },
+        });
+    }
 }

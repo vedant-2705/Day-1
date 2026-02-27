@@ -67,6 +67,20 @@ export interface IUserRepository {
      * @returns The updated {@link UserDTO}, or `null` if no user with that ID exists.
      */
     updateRole(id: string, role: UserRole): Promise<UserDTO | null>;
+
+    /**
+     * Updates the hashed password for a user.
+     * Used by {@link ChangePasswordUseCase} (keeps current session) and
+     * {@link ResetPasswordUseCase} (revokes all sessions).
+     *
+     * The password must be hashed by the caller before passing it here -
+     * this method stores whatever hash it receives without further processing.
+     *
+     * @param id           The CUID of the user whose password should be updated.
+     * @param passwordHash The bcrypt hash of the new password.
+     */
+    updatePassword(id: string, passwordHash: string): Promise<void>;
+
 }
 
 /** DI token used to resolve {@link IUserRepository} from the tsyringe container. */

@@ -13,6 +13,7 @@ import { registerRefreshTokenContainer } from "./modules/RefreshTokenContainer.j
 import { registerUserContainer } from "./modules/UserContainer.js";
 import { registerAuthContainer } from "./modules/AuthContainer.js";
 import { registerAdminContainer } from "./modules/AdminContainer.js";
+import { registerPasswordResetContainer } from "./modules/PasswordResetContainer.js";
 
 /**
  * Registers all application dependencies into the tsyringe DI container.
@@ -29,5 +30,6 @@ export function registerDependencies() {
     registerUserContainer();
     registerRefreshTokenContainer();
     registerAuthContainer();
+    registerPasswordResetContainer();
     registerAdminContainer();
 }

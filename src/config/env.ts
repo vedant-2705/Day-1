@@ -19,6 +19,7 @@ interface AppConfig {
     env: string;
     port: number;
     appName: string;
+    appUrl: string;
     dbUrl: string;
     logLevel: string;
     jwtAccessSecret: string;
@@ -26,18 +27,21 @@ interface AppConfig {
     jwtAccessExpiry: string;
     jwtRefreshExpiry: string;
     refreshTokenCookieName: string;
+    resetTokenExpiryMs: number;
 }
 
 const envSchema = z.object({
     NODE_ENV:                   z.string().default("development"),
     PORT:                       z.string(),
     APP_NAME:                   z.string(),
+    APP_URL:                    z.url(),
     DATABASE_URL:               z.string(),
     LOG_LEVEL:                  z.string(),
     JWT_ACCESS_SECRET:          z.string().min(32),
     JWT_ACCESS_EXPIRY:          z.string().default('15m'),
     JWT_REFRESH_EXPIRY:         z.string().default('7d'),
     REFRESH_TOKEN_COOKIE_NAME:  z.string().default('training_refresh_token'),
+    RESET_TOKEN_EXPIRY_MS:      z.string().default('3600000'),
 });
 
 // Validate and parse environment variables using Zod
@@ -69,6 +73,7 @@ function loadConfig(): AppConfig {
         env,
         port: parseInt(process.env.PORT!, 10),
         appName: process.env.APP_NAME!,
+        appUrl: process.env.APP_URL!,
         dbUrl: process.env.DATABASE_URL!,
         logLevel: process.env.LOG_LEVEL!,
 
@@ -77,6 +82,8 @@ function loadConfig(): AppConfig {
         jwtAccessExpiry: process.env.JWT_ACCESS_EXPIRY!,
         jwtRefreshExpiry: process.env.JWT_REFRESH_EXPIRY!,
         refreshTokenCookieName: process.env.REFRESH_TOKEN_COOKIE_NAME!,
+
+        resetTokenExpiryMs: parseInt(process.env.RESET_TOKEN_EXPIRY_MS!, 10),
     };
 }
 

@@ -154,7 +154,20 @@ export const ERROR_CODES = {
         statusCode: StatusCodes.FORBIDDEN,
         title:      ReasonPhrases.FORBIDDEN,
         message:    "You do not have permission to perform this action",
-},
+    },
+
+    SAME_PASSWORD: {
+        code:       'SAME_PASSWORD',
+        statusCode: StatusCodes.BAD_REQUEST,
+        title:      ReasonPhrases.BAD_REQUEST,
+        message:    "New password must be different from your current password",
+    },
+    INVALID_RESET_TOKEN: {
+        code:       'INVALID_RESET_TOKEN',
+        statusCode: StatusCodes.BAD_REQUEST,
+        title:      ReasonPhrases.BAD_REQUEST,
+        message:    "Password reset link is invalid or has expired",
+    },
 } as const;
 
 /**
@@ -204,6 +217,9 @@ export const ErrorKeys = {
     INVALID_TOKEN:            'INVALID_TOKEN',
     TOKEN_REUSE_DETECTED:     'TOKEN_REUSE_DETECTED',
     INSUFFICIENT_PERMISSIONS: 'INSUFFICIENT_PERMISSIONS',
+
+    SAME_PASSWORD:          'SAME_PASSWORD',
+    INVALID_RESET_TOKEN:    'INVALID_RESET_TOKEN',
 } as const satisfies Record<ErrorCode, string>; 
 
 /** Union type of all valid error code keys, derived directly from {@link ERROR_CODES}. */

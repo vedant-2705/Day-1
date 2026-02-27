@@ -18,7 +18,7 @@ import { REFRESH_TOKEN_USE_CASE, RefreshTokenUseCase } from "use-cases/auth/Refr
 import { GET_ME_USE_CASE, GetMeUseCase } from "use-cases/auth/GetMeUseCase.js";
 import { JWT_SERVICE, JwtService } from "lib/jwt/JwtService.js";
 import { successResponse } from "helpers/ResponseHelper.js";
-import { registerSchema, loginSchema } from "validators/authValidator.js";
+import { registerSchema, loginSchema, ForgotPasswordInput } from "validators/authValidator.js";
 import {
     getRefreshCookieOptions,
     getClearCookieOptions,
@@ -29,6 +29,10 @@ import { LOGOUT_ALL_USE_CASE, LogoutAllUseCase } from "use-cases/auth/LogOutAllU
 import { ErrorKeys } from "constants/ErrorCodes.js";
 import { AuthenticatedRequest } from "middlewares/AuthMiddleware.js";
 import { StatusCodes } from "http-status-codes";
+import { RESET_PASSWORD_USE_CASE, ResetPasswordInput, ResetPasswordUseCase } from "use-cases/auth/ResetPasswordUseCase.js";
+import { FORGOT_PASSWORD_USE_CASE, ForgotPasswordUseCase } from "use-cases/auth/ForgotPasswordUseCase.js";
+import { CHANGE_PASSWORD_USE_CASE, ChangePasswordInput, ChangePasswordUseCase } from "use-cases/auth/ChangePasswordUseCase.js";
+import { HashService } from "lib/crypto/HashService.js";
 
 @injectable()
 export class AuthController {
@@ -50,6 +54,15 @@ export class AuthController {
 
         @inject(GET_ME_USE_CASE) 
         private readonly getMeUseCase: GetMeUseCase,
+
+        @inject(CHANGE_PASSWORD_USE_CASE)
+        private readonly changePasswordUseCase: ChangePasswordUseCase,
+
+        @inject(FORGOT_PASSWORD_USE_CASE)
+        private readonly forgotPasswordUseCase: ForgotPasswordUseCase,
+
+        @inject(RESET_PASSWORD_USE_CASE)
+        private readonly resetPasswordUseCase: ResetPasswordUseCase,
 
         @inject(JWT_SERVICE) 
         private readonly jwtService: JwtService,
@@ -208,6 +221,113 @@ export class AuthController {
         const user = await this.getMeUseCase.execute(authReq.user.userId);
 
         res.status(StatusCodes.OK).json(successResponse({ user }));
+    }
+
+    /**
+     * POST /api/auth/change-password
+     *
+     * Changes the authenticated user's password.
+     * Revokes all other active refresh token sessions except the current one,
+     * so the user stays logged in on this device while all other devices are signed out.
+     * Requires `authMiddleware` - `userId` is read from the verified JWT payload.
+     * @responds 200 - OK.
+     */
+    async changePassword(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ): Promise<void> {
+        const authReq = req as AuthenticatedRequest;
+        const input = req.body as ChangePasswordInput;
+
+        // Extract current refresh token hash so we can keep this session alive
+        // and revoke all others
+        const rawRefreshToken = req.cookies?.[this.jwtService.getCookieName()] as
+            | string
+            | undefined;
+
+        // Hash the current refresh token to identify the current session
+        const currentTokenHash = rawRefreshToken
+            ? HashService.hashToken(rawRefreshToken)
+            : '';
+
+        await this.changePasswordUseCase.execute(
+            authReq.user.userId,
+            currentTokenHash,
+            {
+                currentPassword: input.currentPassword,
+                newPassword: input.newPassword,
+            },
+        );
+
+        res.status(StatusCodes.OK).json(
+            successResponse({
+                message: "Password changed successfully. Other sessions have been logged out.",
+            }),
+        );
+    }
+
+    /**
+     * POST /api/auth/forgot-password
+     *
+     * Initiates the password reset flow by generating a time-limited reset token
+     * and (in production) sending it to the user's registered email address.
+     * In non-production environments the reset link is included in the response
+     * body for easier testing with Postman.
+     * Public route - no authentication required.
+     * @responds 200 - OK. Returns `{ message }` (and `resetLink` in non-production).
+     */
+    async forgotPassword(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ): Promise<void> {
+        const { email } = req.body as ForgotPasswordInput;
+
+        const result = await this.forgotPasswordUseCase.execute(email);
+
+        // In production the reset link is sent via email, not returned in the response
+        // In development it is included so the flow can be tested without an email server
+        res.status(StatusCodes.OK).json(
+            successResponse({
+                message: result.message,
+                ...(process.env['NODE_ENV'] !== 'production' && {
+                    resetLink: result.resetLink,
+                }),
+            }),
+        );
+    }
+
+    /**
+     * POST /api/auth/reset-password
+     *
+     * Completes the password reset flow using the token issued by `forgotPassword`.
+     * The token in the request body acts as the credential - no `Authorization` header
+     * is required. On success, all active refresh token sessions are revoked and the
+     * refresh cookie is cleared, requiring the user to log in again with the new password.
+     * Public route - the reset token itself provides the necessary authorisation.
+     * @responds 200 - OK.
+     */
+    async resetPassword(
+        req: Request,
+        res: Response,
+        next: NextFunction,
+    ): Promise<void> {
+        const input = req.body as ResetPasswordInput;
+
+        await this.resetPasswordUseCase.execute({
+            token: input.token,
+            newPassword: input.newPassword,
+        });
+
+        // Clear refresh cookie - all sessions revoked, cookie is now useless
+        this.clearRefreshCookie(res);
+
+        res.status(StatusCodes.OK).json(
+            successResponse({
+                message: "Password reset successful. Please log in with your new password.",
+            }),
+        );
     }
 
     // Private helpers

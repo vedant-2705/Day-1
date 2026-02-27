@@ -58,6 +58,13 @@ export interface IRefreshTokenRepository {
      * @returns The count of currently active sessions.
      */
     countActiveSessions(userId: string): Promise<number>;
+
+    /**
+     * Revokes all active sessions for a user EXCEPT the one identified by tokenHash.
+     * Used by ChangePasswordUseCase - keeps current session alive, kills all others.
+     */
+    revokeAllExcept(userId: string, currentTokenHash: string): Promise<void>;
+
 }
 
 /** DI token used to resolve {@link IRefreshTokenRepository} from the tsyringe container. */

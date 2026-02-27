@@ -11,7 +11,13 @@ import { Router } from "express";
 import { AuthController } from "controllers/auth/AuthController.js";
 import { asyncHandler } from "middlewares/AsyncHandler.js";
 import { validate } from "middlewares/ValidationMiddleware.js";
-import { registerSchema, loginSchema } from "validators/authValidator.js";
+import {
+    registerSchema,
+    loginSchema,
+    forgotPasswordSchema,
+    resetPasswordSchema,
+    changePasswordSchema,
+} from "validators/authValidator.js";
 import { resolveController } from "helpers/ControllerResolver.js";
 import { authMiddleware } from "middlewares/AuthMiddleware.js";
 import { requestContextMiddleware } from "middlewares/RequestContextMiddleware.js";
@@ -67,6 +73,34 @@ router.get(
     authMiddleware,
     requestContextMiddleware,
     asyncHandler((req, res, next) => controller().me(req, res, next)),
+);
+
+router.post(
+    "/change-password",
+    authMiddleware,
+    requestContextMiddleware,
+    validate(changePasswordSchema),
+    asyncHandler((req, res, next) =>
+        controller().changePassword(req, res, next),
+    ),
+);
+
+// Public - user is not logged in (they forgot their password)
+router.post(
+    "/forgot-password",
+    validate(forgotPasswordSchema),
+    asyncHandler((req, res, next) =>
+        controller().forgotPassword(req, res, next),
+    ),
+);
+
+// Public - token in body acts as credential
+router.post(
+    "/reset-password",
+    validate(resetPasswordSchema),
+    asyncHandler((req, res, next) =>
+        controller().resetPassword(req, res, next),
+    ),
 );
 
 export { router as authRoutes };

@@ -40,9 +40,12 @@ model User {
     createdAt     DateTime @default(now()) @map("created_at")
     updatedAt     DateTime @updatedAt      @map("updated_at")
 
+    emailVerified Boolean  @default(false) @map("email_verified")
+
     // Relations
     contacts      Contact[]
     refreshTokens RefreshToken[]
+    passwordResetTokens PasswordResetToken[]
 
     @@index([email], name: "user_email_idx")
     @@map("users")
@@ -160,3 +163,22 @@ model AuditLog {
     @@map("audit_logs")
 }
 
+model PasswordResetToken {
+    id        String    @id @default(uuid())
+    userId    String    @map("user_id")
+    tokenHash String    @unique @map("token_hash")
+    expiresAt DateTime  @map("expires_at")
+    usedAt    DateTime? @map("used_at")    // null = unused, timestamp = consumed
+    createdAt DateTime  @default(now())    @map("created_at")
+
+    // Cascade delete - if user is deleted, their reset tokens go too
+    user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    // "find token by hash" - used on every reset request
+    @@index([tokenHash], name: "password_reset_token_hash_idx")
+
+    // "find all tokens for user" - used to invalidate previous tokens
+    @@index([userId], name: "password_reset_user_id_idx")
+
+    @@map("password_reset_tokens")
+}
