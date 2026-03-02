@@ -1,0 +1,51 @@
+components:
+  schemas:
+    ProfilePictureResponse:
+      type: object
+      properties:
+        profilePicture:
+          type: string
+          format: uri
+          description: Public CDN URL of the newly uploaded picture (WebP, max 400x400)
+          example: "https://res.cloudinary.com/demo/image/upload/v1/production/crm-lite/clxyz123/profile/1718123456789-a3f7b2c1.webp"
+        width:
+          type: integer
+          nullable: true
+          description: Output image width in pixels after Cloudinary resize
+          example: 400
+        height:
+          type: integer
+          nullable: true
+          description: Output image height in pixels after Cloudinary resize
+          example: 400
+
+    DocumentDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "clxyz789"
+        userId:
+          type: string
+          description: ID of the user who uploaded this document
+          example: "clxyz123"
+        fileName:
+          type: string
+          description: Original filename as uploaded - for display only
+          example: "contract.pdf"
+        publicUrl:
+          type: string
+          format: uri
+          description: CDN URL to access the document
+          example: "https://res.cloudinary.com/demo/raw/upload/v1/production/crm-lite/clxyz123/documents/2024/06/1718123456789-a3f7b2c1.pdf"
+        mimeType:
+          type: string
+          description: MIME type confirmed by magic-bytes validation at upload time
+          example: "application/pdf"
+        sizeBytes:
+          type: integer
+          description: File size in bytes
+          example: 204800
+        uploadedAt:
+          type: string
+          format: date-time

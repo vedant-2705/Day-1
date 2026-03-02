@@ -1,0 +1,109 @@
+components:
+  schemas:
+    SuccessResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: true
+        data:
+          type: object
+          description: Response payload - shape varies per endpoint
+        meta:
+          type: object
+          properties:
+            timestamp:
+              type: string
+              format: date-time
+            pagination:
+              type: object
+              description: Present on paginated endpoints only
+
+    ErrorResponse:
+      type: object
+      required: [type, title, status, detail, code, traceId]
+      properties:
+        type:
+          type: string
+          example: "http://localhost:3000/errors/NOT_FOUND"
+        title:
+          type: string
+          example: "Not Found"
+        status:
+          type: integer
+          example: 404
+        detail:
+          type: string
+          example: "The requested resource was not found"
+        instance:
+          type: string
+          example: "/api/v1/contacts/abc"
+        code:
+          type: string
+          example: "NOT_FOUND"
+        traceId:
+          type: string
+          format: uuid
+        errors:
+          description: Validation error details (422 only)
+
+  responses:
+    Unauthorized:
+      description: Authentication required or access token expired
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            type: "http://localhost:3000/errors/INVALID_TOKEN"
+            title: "Unauthorized"
+            status: 401
+            detail: "Token is invalid or has expired"
+            code: "INVALID_TOKEN"
+            traceId: "550e8400-e29b-41d4-a716-446655440000"
+    Forbidden:
+      description: Authenticated but insufficient role
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "INSUFFICIENT_PERMISSIONS"
+            detail: "You do not have permission to perform this action"
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "NOT_FOUND"
+            detail: "The requested resource was not found"
+    Conflict:
+      description: Resource already exists
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "CONFLICT"
+            detail: "A resource with this value already exists"
+    UnprocessableEntity:
+      description: Validation failed
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "VALIDATION_ERROR"
+            detail: "The request contains invalid data"
+            errors: "name: Name must be at least 2 characters"
+    BadRequest:
+      description: Malformed request or invalid input
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            code: "BAD_REQUEST"
+            detail: "The request is malformed or missing required fields"

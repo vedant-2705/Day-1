@@ -1,0 +1,116 @@
+components:
+  schemas:
+    RegisterRequest:
+      type: object
+      required: [name, email, password]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 255
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+        password:
+          type: string
+          minLength: 8
+          maxLength: 72
+          description: Must contain uppercase, lowercase, and a digit
+          example: "SecurePass1"
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+        password:
+          type: string
+          example: "SecurePass1"
+
+    ChangePasswordRequest:
+      type: object
+      required: [currentPassword, newPassword, confirmPassword]
+      properties:
+        currentPassword:
+          type: string
+          example: "OldPass1"
+        newPassword:
+          type: string
+          minLength: 8
+          example: "NewPass1"
+        confirmPassword:
+          type: string
+          example: "NewPass1"
+
+    ForgotPasswordRequest:
+      type: object
+      required: [email]
+      properties:
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+
+    ResetPasswordRequest:
+      type: object
+      required: [token, newPassword, confirmPassword]
+      properties:
+        token:
+          type: string
+          description: Token extracted from the reset link query param
+          example: "a3f7b2c1d4e5..."
+        newPassword:
+          type: string
+          minLength: 8
+          example: "NewPass1"
+        confirmPassword:
+          type: string
+          example: "NewPass1"
+
+    UserDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "clxyz123"
+        name:
+          type: string
+          example: "Jane Doe"
+        email:
+          type: string
+          format: email
+          example: "jane@example.com"
+        role:
+          type: string
+          enum: [USER, ADMIN]
+          example: "USER"
+        profilePicture:
+          type: string
+          format: uri
+          nullable: true
+          description: CDN URL of the user's profile picture. Null if not uploaded.
+          example: "https://res.cloudinary.com/demo/image/upload/v1/production/crm-lite/clxyz123/profile/1718123456789-a3f7b2c1.webp"
+        emailVerified:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AuthResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/UserDTO'
+        accessToken:
+          type: string
+          description: Short-lived JWT (15 min). Store in memory only - never in localStorage.
+          example: "eyJhbGciOiJIUzI1NiJ9..."

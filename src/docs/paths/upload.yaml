@@ -1,0 +1,137 @@
+paths:
+  /upload/profile:
+    post:
+      summary: Upload or replace the authenticated user's profile picture
+      description: |
+        Accepts an image file (JPEG, PNG, GIF, or WebP). Validated via magic-byte check -
+        renaming a non-image file to `.jpg` will be rejected.
+
+        Cloudinary automatically converts the image to WebP and resizes it to max 400×400.
+        The previous profile picture is deleted from storage before the new one is uploaded.
+      tags: [Upload]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Image file (JPEG, PNG, GIF, WebP). Max 5 MB.
+      responses:
+        '200':
+          description: Profile picture uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  profilePicture: "https://res.cloudinary.com/demo/image/upload/v1/production/crm-lite/clxyz123/profile/1718123456789-a3f7b2c1.webp"
+                  width: 400
+                  height: 400
+                meta:
+                  timestamp: "2024-01-15T10:30:00.000Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: File too large (exceeds 5 MB limit)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "BAD_REQUEST"
+                detail: "File too large. Maximum size is 5 MB."
+
+  /upload/document:
+    post:
+      summary: Upload a document (PDF, DOCX, or DOC)
+      description: |
+        Accepts document files validated via magic-byte check.
+        Stored under a date-partitioned path for GDPR retention support.
+        The original filename is kept for display - the storage key is collision-proof generated name.
+      tags: [Upload]
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Document file (PDF, DOCX, DOC). Max 10 MB.
+      responses:
+        '201':
+          description: Document uploaded successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  id: "clxyz789"
+                  userId: "clxyz123"
+                  fileName: "contract.pdf"
+                  publicUrl: "https://res.cloudinary.com/demo/raw/upload/v1/production/crm-lite/clxyz123/documents/2024/06/1718123456789-a3f7b2c1.pdf"
+                  mimeType: "application/pdf"
+                  sizeBytes: 204800
+                  uploadedAt: "2024-01-15T10:30:00.000Z"
+                meta:
+                  timestamp: "2024-01-15T10:30:00.000Z"
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '413':
+          description: File too large (exceeds 10 MB limit)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                code: "BAD_REQUEST"
+                detail: "File too large. Maximum size is 10 MB."
+
+  /upload/documents:
+    get:
+      summary: List all documents uploaded by the authenticated user
+      description: Returns the authenticated user's documents ordered by upload date, newest first.
+      tags: [Upload]
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of documents
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                success: true
+                data:
+                  - id: "clxyz789"
+                    userId: "clxyz123"
+                    fileName: "contract.pdf"
+                    publicUrl: "https://res.cloudinary.com/..."
+                    mimeType: "application/pdf"
+                    sizeBytes: 204800
+                    uploadedAt: "2024-01-15T10:30:00.000Z"
+                meta:
+                  timestamp: "2024-01-15T10:30:00.000Z"
+        '401':
+          $ref: '#/components/responses/Unauthorized'

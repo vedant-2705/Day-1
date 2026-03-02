@@ -7,7 +7,7 @@
  *  - Profile images: auto-converted to WebP, resized to max 400×400, quality auto
  *  - Documents:      uploaded as raw resource type (no transformation)
  *  - Exponential backoff retry (3 attempts, 500ms / 1s / 2s)
- *  - Folder convention: {env}/crm-lite/{userId}/{type}/
+ *  - Folder convention: {env}/training/{userId}/{type}/
  *  - Returns storagePath (public_id) for future deletion
  */
 

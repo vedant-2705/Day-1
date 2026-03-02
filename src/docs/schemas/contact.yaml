@@ -1,0 +1,190 @@
+components:
+  schemas:
+    CreateContactRequest:
+      type: object
+      required: [name, email, phone, address]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "John Smith"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        phone:
+          type: string
+          pattern: "^[1-9][0-9]{9}$"
+          description: 10-digit mobile number, no leading zero
+          example: "9876543210"
+        address:
+          type: string
+          minLength: 5
+          maxLength: 300
+          example: "123 Main St, Springfield"
+
+    UpdateContactRequest:
+      type: object
+      description: At least one field must be provided
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 100
+          example: "John Smith"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        phone:
+          type: string
+          pattern: "^[1-9][0-9]{9}$"
+          example: "9876543210"
+        address:
+          type: string
+          minLength: 5
+          maxLength: 300
+          example: "456 Elm St, Springfield"
+
+    ContactDTO:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "clxyz789"
+        name:
+          type: string
+          example: "John Smith"
+        email:
+          type: string
+          format: email
+          example: "john@example.com"
+        phone:
+          type: string
+          example: "9876543210"
+        address:
+          type: string
+          example: "123 Main St, Springfield"
+        createdBy:
+          type: string
+          description: ID of the user who created this contact
+          example: "clxyz123"
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "claudit001"
+        entityType:
+          type: string
+          example: "Contact"
+        entityId:
+          type: string
+          example: "clxyz789"
+        action:
+          type: string
+          enum: [CREATE, UPDATE, DELETE]
+          example: "UPDATE"
+        oldData:
+          type: object
+          nullable: true
+          example: { name: "John Smith" }
+        newData:
+          type: object
+          nullable: true
+          example: { name: "Jonathan Smith" }
+        performedBy:
+          type: string
+          example: "clxyz123"
+        ipAddress:
+          type: string
+          nullable: true
+          example: "127.0.0.1"
+        userAgent:
+          type: string
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+
+    CursorPaginationMeta:
+      type: object
+      properties:
+        nextCursor:
+          type: string
+          nullable: true
+          example: "clxyz456"
+        prevCursor:
+          type: string
+          nullable: true
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: false
+        limit:
+          type: integer
+          example: 10
+
+    OffsetPaginationMeta:
+      type: object
+      properties:
+        page:
+          type: integer
+          example: 2
+        limit:
+          type: integer
+          example: 10
+        total:
+          type: integer
+          example: 142
+        totalPages:
+          type: integer
+          example: 15
+        hasNext:
+          type: boolean
+          example: true
+        hasPrev:
+          type: boolean
+          example: true
+
+    ContactStatsDTO:
+      type: object
+      properties:
+        total:
+          type: integer
+          example: 142
+        addedToday:
+          type: integer
+          example: 5
+        mostCommonDomain:
+          type: string
+          nullable: true
+          example: "gmail.com"
+        domainBreakdown:
+          type: array
+          items:
+            type: object
+            properties:
+              domain:
+                type: string
+                example: "gmail.com"
+              count:
+                type: integer
+                example: 48
+              percentage:
+                type: number
+                format: float
+                example: 33.8
+        generatedAt:
+          type: string
+          format: date-time

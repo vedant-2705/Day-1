@@ -28,6 +28,8 @@ registerDependencies();
 
 import masterRoutes from "routes/index.js";
 import cookieParser from "cookie-parser";
+import { swaggerSpecYaml } from "config/swagger-yaml.js";
+
 
 const app = express();
 const logger = container.resolve(Logger);
@@ -39,20 +41,23 @@ app.use(requestLogger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use(
-    "/docs",
-    swaggerUi.serve,
-    swaggerUi.setup(swaggerSpec, {
-        customSiteTitle: "API Docs",
-        customCss: ".swagger-ui .topbar { display: none }",
-        swaggerOptions: {
-            persistAuthorization: true, // keeps the Bearer token across page refreshes
-            displayRequestDuration: true,
-            filter: true,
-            tryItOutEnabled: true,
-        },
-    }),
-);
+// app.use(
+//     "/docs",
+//     swaggerUi.serve,
+//     swaggerUi.setup(swaggerSpec, {
+//         customSiteTitle: "API Docs",
+//         customCss: ".swagger-ui .topbar { display: none }",
+//         swaggerOptions: {
+//             persistAuthorization: true,
+//             displayRequestDuration: true,
+//             filter: true,
+//             tryItOutEnabled: true,
+//         },
+//     }),
+// );
+
+
+app.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerSpecYaml));
 
 app.get("/docs.json", (_req: Request, res: Response) => {
     res.setHeader("Content-Type", "application/json");

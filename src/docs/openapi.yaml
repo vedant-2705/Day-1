@@ -1,0 +1,62 @@
+openapi: '3.0.3'
+
+info:
+  title: API Documentation
+  version: '1.0'
+  description: |
+    REST API for managing contacts, with authentication, role-based access control, and versioning.
+
+    ## Authentication
+    This API uses **JWT Bearer tokens** for authentication.
+
+    1. Register or log in to receive an `accessToken` (short-lived, 15 min) and a
+       `refreshToken` (HttpOnly cookie, 7 days).
+
+    2. Include the access token in the `Authorization` header: `Bearer <token>`
+
+    3. When the access token expires, call `POST /api/auth/refresh` - the refresh
+       token cookie is sent automatically.
+
+    ## API Versioning
+    Two strategies are supported:
+    - **URL versioning** (preferred): `/api/v1/contacts`, `/api/v2/contacts`
+
+    - **Header versioning**: send `Accept-Version: v2` with unversioned paths
+
+    ## Roles
+    - **USER**: Can manage their own contacts only.
+
+    - **ADMIN**: Full access - all contacts, reports, audit history, and user promotion.
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:3000
+    description: Local development server
+
+security:
+  - bearerAuth: []
+
+tags:
+  - name: Auth
+    description: Registration, login, token management, and password operations
+  - name: Contacts v1
+    description: Basic contact CRUD - no pagination
+  - name: Contacts v2
+    description: Advanced contact CRUD with cursor/offset pagination, search, filter, and sort
+  - name: Reports
+    description: Aggregated contact statistics - ADMIN only
+  - name: Admin
+    description: User management operations - ADMIN only
+  - name: Upload
+    description: Profile picture and document upload endpoints
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: >
+        JWT access token from POST /auth/login or POST /auth/register.
+        Expires in 15 minutes. Store in memory only - never in localStorage.
