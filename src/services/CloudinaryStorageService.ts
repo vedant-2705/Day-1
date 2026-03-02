@@ -51,9 +51,11 @@ export class CloudinaryStorageService implements IStorageService {
         mimeType: string,
         options: UploadOptions,
     ): Promise<UploadResult> {
-        const publicId = `${options.folder}${options.fileName}`;
+        const folder = `${options.folder}`
+        const publicId = `${options.fileName}`;
 
         const uploadOptions: Record<string, unknown> = {
+            folder: folder,
             public_id: publicId,
             resource_type: options.resourceType === "image" ? "image" : "raw",
             overwrite: true,

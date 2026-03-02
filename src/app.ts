@@ -20,6 +20,8 @@ import { container } from "tsyringe";
 import { DatabaseConnection } from "database/DatabaseConnection.js";
 import { Logger } from "logging/Logger.js";
 import { registerDependencies } from "config/container.js";
+import { swaggerSpec } from "config/swagger.js";
+import swaggerUi from "swagger-ui-express";
 
 // Must be called before any container.resolve() or route imports that trigger DI
 registerDependencies();
@@ -36,6 +38,26 @@ app.use(cookieParser());
 app.use(requestLogger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+app.use(
+    "/docs",
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, {
+        customSiteTitle: "API Docs",
+        customCss: ".swagger-ui .topbar { display: none }",
+        swaggerOptions: {
+            persistAuthorization: true, // keeps the Bearer token across page refreshes
+            displayRequestDuration: true,
+            filter: true,
+            tryItOutEnabled: true,
+        },
+    }),
+);
+
+app.get("/docs.json", (_req: Request, res: Response) => {
+    res.setHeader("Content-Type", "application/json");
+    res.send(swaggerSpec);
+});
 
 // --- Routes ---
 

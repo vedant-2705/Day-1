@@ -15,14 +15,49 @@ import { UserRole } from 'generated/prisma/enums.js';
 const router = Router();
 
 const controller = resolveController(ReportController);
+
 /**
- * GET /v1/reports/contacts-report
- * Returns aggregated contact statistics (total, added today, top email domains).
- * Response is cached for 60 seconds to reduce database load on repeated calls.
+ * @swagger
+ * /v1/reports/contacts-report:
+ *   get:
+ *     summary: Get aggregated contact statistics
+ *     description: |
+ *       Returns total contacts, contacts added today, and a breakdown of the most common email domains.
+ *       **ADMIN only** - returns 403 for USER role.
+ *     tags: [Reports]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Contact statistics
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *             example:
+ *               success: true
+ *               data:
+ *                 total: 142
+ *                 addedToday: 5
+ *                 mostCommonDomain: "gmail.com"
+ *                 domainBreakdown:
+ *                   - domain: "gmail.com"
+ *                     count: 48
+ *                     percentage: 33.8
+ *                   - domain: "yahoo.com"
+ *                     count: 22
+ *                     percentage: 15.5
+ *                 generatedAt: "2024-01-15T10:00:00.000Z"
+ *               meta:
+ *                 timestamp: "2024-01-15T10:00:00.000Z"
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.get(
     '/contacts-report',
-    requireRole(UserRole.ADMIN), // Only admins can access reports
+    requireRole(UserRole.ADMIN),
     asyncHandler((req, res, next) => controller().getContactReport(req, res, next)),
 );
 

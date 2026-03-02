@@ -23,9 +23,56 @@ const router = Router();
 const controller = resolveController(AdminController);
 
 /**
- * POST /admin/users/:id/promote
- * Promotes the target user from USER -> ADMIN.
- * Requires: authenticated + ADMIN role
+ * @swagger
+ * /v1/admin/users/{id}/promote:
+ *   post:
+ *     summary: Promote a USER to ADMIN
+ *     description: |
+ *       Elevates the target user's role from USER to ADMIN.
+ *       Returns 409 if the user is already an ADMIN.
+ *       **ADMIN only** - returns 403 for USER role.
+ *     tags: [Admin]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: The CUID of the user to promote
+ *         example: "clxyz123"
+ *     responses:
+ *       200:
+ *         description: User promoted to ADMIN
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SuccessResponse'
+ *             example:
+ *               success: true
+ *               data:
+ *                 id: "clxyz123"
+ *                 name: "Jane Doe"
+ *                 email: "jane@example.com"
+ *                 role: "ADMIN"
+ *                 createdAt: "2024-01-15T10:00:00.000Z"
+ *                 updatedAt: "2024-01-15T10:05:00.000Z"
+ *       404:
+ *         $ref: '#/components/responses/NotFound'
+ *       409:
+ *         description: User is already an ADMIN
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/ErrorResponse'
+ *             example:
+ *               code: "CONFLICT"
+ *               detail: "User is already an ADMIN"
+ *       401:
+ *         $ref: '#/components/responses/Unauthorized'
+ *       403:
+ *         $ref: '#/components/responses/Forbidden'
  */
 router.post(
     "/users/:id/promote",

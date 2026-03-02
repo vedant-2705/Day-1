@@ -27,6 +27,8 @@ import {
 } from "use-cases/upload/UploadDocumentUseCase.js";
 import { UploadController } from "controllers/upload/UploadController.js";
 import { GET_USER_DOCUMENTS_USE_CASE, GetUserDocumentsUseCase } from "use-cases/upload/GetUserDocumentUseCase.js";
+import { DOCUMENT_MAPPER } from "interfaces/mapper/IDocumentMapper.js";
+import { DocumentMapper } from "mapper/DocumentMapper.js";
 
 export function registerUploadContainer() {
     // Storage provider (env-driven)
@@ -57,6 +59,8 @@ export function registerUploadContainer() {
         GET_USER_DOCUMENTS_USE_CASE,
         GetUserDocumentsUseCase,
     )
+
+    container.registerSingleton(DOCUMENT_MAPPER, DocumentMapper);
 
     // Controller (Singleton)
     container.registerSingleton<UploadController>(UploadController);

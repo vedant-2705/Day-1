@@ -9,6 +9,7 @@ import { Router } from 'express';
 import { contactRoutesV2 } from './contactRoutes.js';
 import { reportsRoutes } from './reportRoutes.js';
 import { adminRoutes } from 'routes/admin/adminRoutes.js';
+import { uploadRoutes } from './upload/uploadRoutes.js';
 
 const v2Router = Router();
 
@@ -17,6 +18,8 @@ v2Router.use('/contacts', contactRoutesV2);
 
 /** Aggregated report endpoints for API v2. */
 v2Router.use('/reports', reportsRoutes);
+
+v2Router.use('/upload', uploadRoutes);
 
 /** Admin routes for API v2. */
 v2Router.use('/admin', adminRoutes);
