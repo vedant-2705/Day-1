@@ -19,14 +19,19 @@ import {
     uuidSchema,
 } from "validators/contactValidator.js";
 import { asyncHandler } from "middlewares/AsyncHandler.js";
+// import { apiRateLimit } from "middlewares/RateLimitMiddleware.js";
 import { resolveController } from "helpers/ControllerResolver.js";
 import { ContactControllerV2 } from "controllers/v2/ContactController.js";
 import { requireRole } from "middlewares/RoleMiddleware.js";
 import { UserRole } from "generated/prisma/enums.js";
+import { idempotencyMiddleware } from "middlewares/IdempotencyMiddleware.js";
 
 const router = Router();
 
 const controller = resolveController(ContactControllerV2);
+
+// Apply API rate limit to all contact routes (runs after global authMiddleware in routes/index.ts)
+// router.use(apiRateLimit);
 
 /**
  * @swagger
@@ -36,7 +41,7 @@ const controller = resolveController(ContactControllerV2);
  *     description: |
  *       Advanced contact listing with two pagination strategies:
  *       - **Cursor pagination** (default): stable, gap-free, use `cursor` + `direction`
- * 
+ *
  *       - **Offset pagination**: traditional page-based, use `paginationType=offset` + `page`
  *
  *       USERs only see contacts they created. ADMINs see all.
@@ -162,6 +167,7 @@ router
     .route("/")
     .get(asyncHandler((req, res, next) => controller().getAll(req, res, next)))
     .post(
+        idempotencyMiddleware(),
         validate(createContactSchema),
         asyncHandler((req, res, next) => controller().create(req, res, next)),
     );

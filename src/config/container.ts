@@ -15,6 +15,9 @@ import { registerAuthContainer } from "./modules/AuthContainer.js";
 import { registerAdminContainer } from "./modules/AdminContainer.js";
 import { registerPasswordResetContainer } from "./modules/PasswordResetContainer.js";
 import { registerUploadContainer } from "./modules/UploadContainer.js";
+import { registerRedisContainer } from "./modules/RedisContainer.js";
+import { registerRateLimitContainer } from "./modules/RateLimitContainer.js";
+import { registerIdempotencyContainer } from "./modules/IdempotencyContainer.js";
 
 /**
  * Registers all application dependencies into the tsyringe DI container.
@@ -26,6 +29,9 @@ import { registerUploadContainer } from "./modules/UploadContainer.js";
  */
 export function registerDependencies() {
     registerInfrastructureContainer();
+    registerRedisContainer();
+    registerRateLimitContainer();
+    registerIdempotencyContainer();
     registerContactContainer();
     registerReportContainer();
     registerUserContainer();

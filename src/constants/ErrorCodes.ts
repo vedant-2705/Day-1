@@ -168,6 +168,16 @@ export const ERROR_CODES = {
         title:      ReasonPhrases.BAD_REQUEST,
         message:    "Password reset link is invalid or has expired",
     },
+
+    // -------------------------------------------------------------------------
+    // Rate limiting errors
+    // -------------------------------------------------------------------------
+    RATE_LIMIT_EXCEEDED: {
+        code: "RATE_LIMIT_EXCEEDED",
+        statusCode: StatusCodes.TOO_MANY_REQUESTS,
+        title: ReasonPhrases.TOO_MANY_REQUESTS,
+        message: "Rate limit exceeded. Please slow down.",
+    },
 } as const;
 
 /**
@@ -220,6 +230,7 @@ export const ErrorKeys = {
 
     SAME_PASSWORD:          'SAME_PASSWORD',
     INVALID_RESET_TOKEN:    'INVALID_RESET_TOKEN',
+    RATE_LIMIT_EXCEEDED:    'RATE_LIMIT_EXCEEDED',
 } as const satisfies Record<ErrorCode, string>; 
 
 /** Union type of all valid error code keys, derived directly from {@link ERROR_CODES}. */

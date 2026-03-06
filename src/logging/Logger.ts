@@ -1,87 +1,59 @@
 /**
  * @module Logger
- * @description Lightweight console logger with per-level ANSI colour coding.
- * Registered as a singleton so all parts of the app share one instance.
- * Log output format: `[ISO timestamp] LEVEL ServiceName: message`
+ * @description Application-wide structured logger backed by Winston.
+ *
+ * Two exports:
+ *   - `Logger` class   tsyringe-injectable singleton for use inside DI-managed
+ *     classes (repositories, services, use cases).  Inject with `@inject(LOGGER)`.
+ *   - `LOGGER`         DI injection token for the `Logger` class.
+ *
+ * Log levels:
+ *   production  -> info  (excludes debug noise in prod)
+ *   development -> debug (full query and context logging)
  */
 
 import "reflect-metadata";
 import { singleton } from "tsyringe";
+import winston, { Logger as WinstonLogger } from "winston";
 
-export enum LogLevel {
-    DEBUG = "DEBUG",
-    INFO = "INFO",
-    WARN = "WARN",
-    ERROR = "ERROR",
-}
 
-const COLORS: Record<LogLevel, string> = {
-    [LogLevel.DEBUG]: "\x1b[36m", // cyan
-    [LogLevel.INFO]: "\x1b[32m",  // green
-    [LogLevel.WARN]: "\x1b[33m",  // yellow
-    [LogLevel.ERROR]: "\x1b[31m", // red
-};
-
-const RESET = "\x1b[0m";
-
-/**
- * Structured console logger. Prefix all output with timestamp, level, and service name.
- */
 @singleton()
 export class Logger {
-    constructor(private readonly serviceName: string = "ContactService") {}
+    private readonly _logger: WinstonLogger;
 
-    /**
-     * Core log writer. Formats and prints the log entry with ANSI colouring.
-     * All public log methods delegate here.
-     */
-    private log(level: LogLevel, message: string, metadata?: any): void {
-        const color = COLORS[level];
-        const logEntry = {
-            timestamp: new Date().toISOString(),
-            service: this.serviceName,
-            ...metadata,
-        };
-
-        const { timestamp, service, ...rest } = logEntry;
-        const hasMeta = Object.keys(rest).length > 0;
-
-        console.log(
-            `${color}[${timestamp}] ${level} ${service}: ${message}${RESET}`,
-            ...(hasMeta ? [rest] : []),
-        );
-    }
-
-    /** Emits a DEBUG entry. Use for development diagnostics and query tracing. */
-    debug(message: string, metadata?: any): void {
-        this.log(LogLevel.DEBUG, message, metadata);
-    }
-
-    /** Emits an INFO entry. Use for normal operational events (startup, requests). */
-    info(message: string, metadata?: any): void {
-        this.log(LogLevel.INFO, message, metadata);
-    }
-
-    /** Emits a WARN entry. Use for recoverable issues that deserve attention. */
-    warn(message: string, metadata?: any): void {
-        this.log(LogLevel.WARN, message, metadata);
-    }
-
-    /**
-     * Emits an ERROR entry. If `error` is an `Error` instance, its `name`, `message`,
-     * and `stack` are extracted for structured output.
-     */
-    error(message: string, error?: any): void {
-        this.log(LogLevel.ERROR, message, {
-            error:
-                error instanceof Error
-                    ? {
-                          name: error.name,
-                          message: error.message,
-                          stack: error.stack,
-                      }
-                    : error,
+    constructor() {
+        this._logger = winston.createLogger({
+            level: process.env.NODE_ENV === "production" ? "info" : "debug",
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.colorize(),
+                winston.format.printf(
+                    ({ timestamp, level, message, ...meta }) => {
+                        const metaStr = Object.keys(meta).length
+                            ? "\n" + JSON.stringify(meta, null, 2)
+                            : "";
+                        return `${timestamp} [${level}]: ${message}${metaStr}`;
+                    },
+                ),
+            ),
+            transports: [new winston.transports.Console()],
         });
+    }
+
+    info(message: string, meta?: Record<string, unknown>): void {
+        this._logger.info(message, meta);
+    }
+
+    debug(message: string, meta?: Record<string, unknown>): void {
+        this._logger.debug(message, meta);
+    }
+
+    warn(message: string, meta?: Record<string, unknown>): void {
+        this._logger.warn(message, meta);
+    }
+
+    error(message: string, meta?: Record<string, unknown>): void {
+        this._logger.error(message, meta);
     }
 }
 

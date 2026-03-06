@@ -17,6 +17,7 @@ import v2Router from './v2/index.js';
 import { authRoutes } from './auth/authRoutes.js';
 import { authMiddleware } from 'middlewares/AuthMiddleware.js';
 import { requestContextMiddleware } from 'middlewares/RequestContextMiddleware.js';
+import { apiRateLimit } from 'middlewares/RateLimitMiddleware.js';
 
 const router = Router();
 
@@ -28,6 +29,7 @@ router.use("/auth", authRoutes);
 router.use(versionNegotiationMiddleware);
 router.use(authMiddleware); // All contact routes require authentication
 router.use(requestContextMiddleware);
+router.use(apiRateLimit); // Apply rate limiting to all routes after auth
 
 router.use('/v1', v1Router);
 router.use('/v2', v2Router);

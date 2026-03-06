@@ -85,6 +85,17 @@ export interface IContactRepository {
         addedToday: number;
         domainCounts: { domain: string; count: number }[];
     }>;
+
+    /**
+     * Returns lightweight aggregate counts for the SSE stats stream.
+     * Distinct from getContactStats() which returns domain breakdown data for reports.
+     * @returns Total active contacts and contacts added in the last 24 hours
+     */
+    getStats(): Promise<{
+        totalContacts: number;
+        activeContacts: number;
+        recentlyAdded: number;
+    }>;
    
 }
 

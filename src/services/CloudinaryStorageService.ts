@@ -16,6 +16,7 @@ import { injectable } from "tsyringe";
 import { IStorageService } from "interfaces/services/IStorageService.js";
 import { StorageUploadError } from "shared/errors/StorageUploadError.js";
 import { DeleteOptions, UploadOptions, UploadResult } from "types/storage/index.js";
+import { withRetry } from "lib/retry/RetryService.js";
 
 // --------------------------------------------------------------------------------
 // Cloudinary SDK configuration
@@ -79,7 +80,24 @@ export class CloudinaryStorageService implements IStorageService {
             }),
         };
 
-        const result = await this.uploadWithRetry(buffer, uploadOptions);
+        // const result = await this.uploadWithRetry(buffer, uploadOptions);
+
+        const result = await withRetry(
+            () => this.uploadBuffer(buffer, uploadOptions),
+            {
+                maxAttempts: 3,
+                baseDelayMs: 500,
+                maxDelayMs: 2000,
+                isRetryable: (err) =>
+                    // Retry transient network errors and Cloudinary 5xx responses.
+                    // Do NOT retry 4xx (bad file, auth failure) - they will never succeed.
+                    err.message.includes("ECONNRESET") ||
+                    err.message.includes("ETIMEDOUT") ||
+                    err.message.includes("socket hang up") ||
+                    err.message.includes("500") ||
+                    err.message.includes("503"),
+            },
+        );
 
         return {
             storagePath: result.public_id,

@@ -18,12 +18,17 @@ import {
     uuidSchema,
 } from "validators/contactValidator.js";
 import { asyncHandler } from "middlewares/AsyncHandler.js";
+// import { apiRateLimit } from "middlewares/RateLimitMiddleware.js";
 import { resolveController } from "helpers/ControllerResolver.js";
 import { ContactControllerV1 } from "controllers/v1/ContactController.js";
+import { idempotencyMiddleware } from "middlewares/IdempotencyMiddleware.js";
 
 const router = Router();
 
 const controller = resolveController(ContactControllerV1);
+
+// Apply API rate limit to all contact routes (runs after global authMiddleware in routes/index.ts)
+// router.use(apiRateLimit);
 
 /**
  * @swagger
@@ -101,6 +106,7 @@ router
     .route("/")
     .get(asyncHandler((req, res, next) => controller().getAll(req, res, next)))
     .post(
+        idempotencyMiddleware(),
         validate(createContactSchema),
         asyncHandler((req, res, next) => controller().create(req, res, next)),
     );

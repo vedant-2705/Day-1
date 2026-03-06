@@ -377,4 +377,29 @@ export class ContactRepository implements IContactRepository {
             })),
         };
     }
+
+    /**
+     * Returns lightweight aggregate counts for the SSE stats stream.
+     * Distinct from getContactStats() which pulls domain breakdown data.
+     * Runs two COUNT queries in parallel for minimum latency.
+     */
+    async getStats(): Promise<{
+        totalContacts: number;
+        activeContacts: number;
+        recentlyAdded: number;
+    }> {
+        const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+        const [total, recent] = await Promise.all([
+            this.prisma.contact.count({ where: { deletedAt: null } }),
+            this.prisma.contact.count({
+                where: {
+                    deletedAt: null,
+                    createdAt: { gte: since24h },
+                },
+            }),
+        ]);
+
+        return { totalContacts: total, activeContacts: total, recentlyAdded: recent };
+    }
 }

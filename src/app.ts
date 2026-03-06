@@ -29,11 +29,13 @@ registerDependencies();
 import masterRoutes from "routes/index.js";
 import cookieParser from "cookie-parser";
 import { swaggerSpecYaml } from "config/swagger-yaml.js";
+import { RedisConnection } from "cache/RedisConnection.js";
 
 
 const app = express();
 const logger = container.resolve(Logger);
 const dbConnection = container.resolve(DatabaseConnection);
+const redis = container.resolve(RedisConnection);
 
 // --- Middleware ---
 app.use(cookieParser());
@@ -107,6 +109,10 @@ async function startServer() {
         await dbConnection.connect();
         logger.info("Database connection established");
 
+        // Verify Redis is reachable before accepting traffic
+        await redis.ping();
+        logger.info("Redis connection established");
+
         app.listen(config.port, () => {
             logger.info(`Server running on port ${config.port}`, {
                 environment: config.env,
@@ -122,19 +128,18 @@ async function startServer() {
     }
 }
 
-// Graceful shutdown: SIGTERM is sent by Docker, Kubernetes, and process managers (e.g. PM2)
-process.on("SIGTERM", async () => {
-    logger.info("SIGTERM received, shutting down gracefully");
+async function shutdown() {
+    logger.info("Shutting down gracefully...");
+    await redis.disconnect();
     await dbConnection.disconnect();
     process.exit(0);
-});
+}
+
+// Graceful shutdown: SIGTERM is sent by Docker, Kubernetes, and process managers (e.g. PM2)
+process.on("SIGTERM", shutdown);
 
 // Graceful shutdown: SIGINT is sent when the developer presses Ctrl+C
-process.on("SIGINT", async () => {
-    logger.info("SIGINT received, shutting down gracefully");
-    await dbConnection.disconnect();
-    process.exit(0);
-});
+process.on("SIGINT", shutdown);
 
 startServer();
 

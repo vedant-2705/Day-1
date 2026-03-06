@@ -28,6 +28,12 @@ interface AppConfig {
     jwtRefreshExpiry: string;
     refreshTokenCookieName: string;
     resetTokenExpiryMs: number;
+    redisHost: string;
+    redisPort: number;
+    redisPassword: string;
+    rateLimitWindowMs: number;
+    rateLimitMaxRequests: number;
+    rateLimitAuthMax: number;
 }
 
 const envSchema = z.object({
@@ -42,6 +48,10 @@ const envSchema = z.object({
     JWT_REFRESH_EXPIRY:         z.string().default('7d'),
     REFRESH_TOKEN_COOKIE_NAME:  z.string().default('training_refresh_token'),
     RESET_TOKEN_EXPIRY_MS:      z.string().default('3600000'),
+
+    REDIS_HOST:                 z.string().default("localhost"),
+    REDIS_PORT:                 z.string().default("6379").refine(v => !isNaN(Number(v)), { message: "Must be a number" }),
+    REDIS_PASSWORD:             z.string().optional(),
 });
 
 // Validate and parse environment variables using Zod
@@ -60,7 +70,7 @@ if (!parsedEnv.success) {
  * @throws {Error} If one or more required variables are not set
  */
 function loadConfig(): AppConfig {
-    const required = ["PORT", "APP_NAME", "DATABASE_URL", "LOG_LEVEL", "JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET", "JWT_ACCESS_EXPIRY", "JWT_REFRESH_EXPIRY", "REFRESH_TOKEN_COOKIE_NAME"];
+    const required = ["PORT", "APP_NAME", "DATABASE_URL", "LOG_LEVEL", "JWT_ACCESS_SECRET", "JWT_REFRESH_SECRET", "JWT_ACCESS_EXPIRY", "JWT_REFRESH_EXPIRY", "REFRESH_TOKEN_COOKIE_NAME", "REDIS_HOST", "REDIS_PORT"];
 
     const missing = required.filter((key) => !process.env[key]);
     if (missing.length > 0) {
@@ -84,6 +94,12 @@ function loadConfig(): AppConfig {
         refreshTokenCookieName: process.env.REFRESH_TOKEN_COOKIE_NAME!,
 
         resetTokenExpiryMs: parseInt(process.env.RESET_TOKEN_EXPIRY_MS!, 10),
+        redisHost: process.env.REDIS_HOST!,
+        redisPort: parseInt(process.env.REDIS_PORT!, 10),
+        redisPassword: process.env.REDIS_PASSWORD || "",
+        rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS!, 10),
+        rateLimitMaxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS!, 10),
+        rateLimitAuthMax: parseInt(process.env.RATE_LIMIT_AUTH_MAX!, 10),
     };
 }
 

@@ -1,16 +1,26 @@
 import { ErrorKeys } from "constants/ErrorCodes.js";
 import { UserRole } from "domain/enum/UserRole.js";
-import { CONTACT_REPOSITORY, type IContactRepository } from "interfaces/repositories/IContactRepository.js";
+import {
+    CONTACT_REPOSITORY,
+    type IContactRepository,
+} from "interfaces/repositories/IContactRepository.js";
 import { LOGGER, Logger } from "logging/Logger.js";
 import { AuthUser } from "middlewares/AuthMiddleware.js";
 import { NotFoundError } from "shared/errors/NotFoundError.js";
 import { inject, injectable } from "tsyringe";
+import { CacheService } from "cache/CacheService.js";
+import { CacheKeys } from "cache/CacheKeys.js";
 
 /**
- * Use case: Permanently delete a contact by ID.
+ * Use case: Soft-delete a contact by ID.
  *
- * Verifies existence before attempting deletion.
- * Throws {@link NotFoundError} (404) if the contact does not exist at either check.
+ * Verifies existence and ownership before attempting deletion.
+ * Throws {@link NotFoundError} (404) if the contact does not exist or is not owned
+ * by the requesting user.
+ *
+ * Cache invalidation: after successful DB write, invalidates the list pattern,
+ * the single-contact key, and the stats key. Runs AFTER the write - never inside
+ * a try/catch that could swallow invalidation failures silently.
  */
 @injectable()
 export class DeleteContactUseCase {
@@ -20,11 +30,14 @@ export class DeleteContactUseCase {
 
         @inject(LOGGER)
         private readonly logger: Logger,
+
+        @inject(CacheService)
+        private readonly cache: CacheService,
     ) {}
 
     /**
      * @param id - UUID of the contact to delete
-     * @throws {NotFoundError} If no contact with the given ID exists
+     * @throws {NotFoundError} If no contact with the given ID exists or ownership check fails
      */
     async execute(id: string, authUser: AuthUser): Promise<void> {
         this.logger.info(`Attempting to delete contact with ID: ${id}`);
@@ -37,14 +50,15 @@ export class DeleteContactUseCase {
             throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
 
-        if(
+        if (
             authUser.role === UserRole.USER &&
             existingContact.createdBy !== authUser.userId
         ) {
-            this.logger.warn(`User ${authUser.userId} attempted to access contact ${id} owned by ${existingContact.createdBy}`);
+            this.logger.warn(
+                `User ${authUser.userId} attempted to access contact ${id} owned by ${existingContact.createdBy}`,
+            );
             throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
-        
 
         const deleted = await this.contactRepository.delete(id);
 
@@ -53,7 +67,18 @@ export class DeleteContactUseCase {
             this.logger.warn(`Contact with ID ${id} not found for deletion`);
             throw new NotFoundError(ErrorKeys.CONTACT_NOT_FOUND, { id });
         }
+
         this.logger.info(`Contact deleted with ID: ${id}`);
+
+        // Invalidate cache AFTER successful DB write.
+        // Invalidate list, single entry, and stats - all in parallel.
+        await Promise.all([
+            this.cache.invalidatePattern(
+                CacheKeys.contactListPattern(authUser.userId),
+            ),
+            this.cache.del(CacheKeys.contactById(id)),
+            this.cache.del(CacheKeys.contactStats()),
+        ]);
     }
 }
 

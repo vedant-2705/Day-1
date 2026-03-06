@@ -21,6 +21,7 @@ import {
 import { resolveController } from "helpers/ControllerResolver.js";
 import { authMiddleware } from "middlewares/AuthMiddleware.js";
 import { requestContextMiddleware } from "middlewares/RequestContextMiddleware.js";
+import { authRateLimit } from "middlewares/RateLimitMiddleware.js";
 
 const router = Router();
 const controller = resolveController(AuthController);
@@ -81,6 +82,7 @@ const controller = resolveController(AuthController);
  */
 router.post(
     "/register",
+    authRateLimit,
     validate(registerSchema),
     asyncHandler((req, res, next) => controller().register(req, res, next)),
 );
@@ -133,6 +135,7 @@ router.post(
  */
 router.post(
     "/login",
+    authRateLimit,
     validate(loginSchema),
     asyncHandler((req, res, next) => controller().login(req, res, next)),
 );
